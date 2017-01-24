@@ -48,13 +48,14 @@ class CalculatorController {
      */
     performCalculations(req, res) {
         try {
+            console.log(req.body.length);
             if (typeof req.body === 'undefined' && (!(req.body).length > 0) ) {
                 throw('cannot perform calculations');
             }
             //call getResults function to perform calculations
             //configurable flag to either do slicing or IQR filtering on the data
             //flag is now turned off to perform slicing
-            var results = new statisticalCalculator.getResults(req.body, false);
+            var results = new statisticalCalculator.getResults(req.body, true);
             res.send(results);
         }
         catch (error) {

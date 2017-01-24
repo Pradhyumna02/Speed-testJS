@@ -152,6 +152,8 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
+                testPlan.hasIPv6 = false;
+                //testPlan.baseUrlIPv4 = '69.252.86.194';
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
@@ -215,7 +217,8 @@
 
     function uploadProbe() {
         function uploadProbeTestOnComplete(result) {
-            uploadSize = defaultUploadSize;
+            console.log('result:' +result.toFixed(2));
+            uploadSize = result.toFixed(2);
 
             if (result && isMobile()) {
                 uploadSize = result;

@@ -348,6 +348,7 @@
      * @returns {*}
      */
     function getRandomData(size) {
+        console.log(size);
 
         function getData() {
             return Math.random().toString();

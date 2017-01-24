@@ -100,14 +100,17 @@
    * @param probe object
    */
    downloadProbeTest.prototype.onTestComplete = function (result) {
+       console.log(result.loaded);
       clearInterval(this.interval);
       var self =this;
+       var value  = (15000 * result.loaded)/result.time;
+       console.log(value);
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function() {
           if (xhr.readyState === XMLHttpRequest.DONE) {
             self._running=false;
             var data = JSON.parse(xhr.responseText);
-            self.clientCallbackComplete(data);
+            self.clientCallbackComplete(value);
           }
       };
       var requestTimeout;

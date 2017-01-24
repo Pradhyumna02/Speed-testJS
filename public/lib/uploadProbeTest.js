@@ -75,6 +75,11 @@
      * @param probe object
      */
     uploadProbeTest.prototype.onTestComplete = function (result) {
+        console.log('time : ' +result.totalTime);
+        console.log('size: ' +result.size);
+        console.log('band: ' +result.bandwidth);
+        console.log('total: ' + (15000 * result.size)/result.totalTime);
+        var value  = (15000 * result.size)/result.totalTime;
         clearInterval(this.interval);
         var self = this;
         var xhr = new XMLHttpRequest();
@@ -82,7 +87,7 @@
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 self._running = false;
                 var data = xhr.responseText;
-                self.clientCallbackComplete(data);
+                self.clientCallbackComplete(value);
             }
         };
         var requestTimeout;
@@ -101,6 +106,10 @@
      */
     uploadProbeTest.prototype.onTestProgress = function (result) { // jshint ignore:line
         //process result if you want to use this function
+        console.log(result.loaded);
+        console.log('hello: ' + result.bandwidth);
+        console.log(result.totalTime/1000);
+        console.log(result.time/1000);
     };
 
     /**
