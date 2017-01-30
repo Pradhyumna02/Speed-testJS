@@ -37,8 +37,9 @@
   var probeRuns = 20;
   var counter = 0;
   var currentTest;
-  var probeTimeout = 3000;
+  var probeTimeout = 5000;
   var concurrentDownloads;
+ var testSize;
     function initTest() {
         function addEvent(el, ev, fn) {
             void (el.addEventListener && el.addEventListener(ev, fn, false));
@@ -182,6 +183,11 @@
     function downloadProbe() {
 
         function downloadProbeTestOnComplete(result) {
+            //console.log(result.bandwidth + 'hello' + result.finalSize);
+            if (result.finalSize !== undefined) {
+                testSize = result.finalSize;
+            }
+
           currentTest = 'download';
           option.series[0].data[0].value = 0;
           option.series[0].data[0].name = 'Testing Download ...';
@@ -195,17 +201,20 @@
           myChart.setOption(option, true);
           if(result.running) {
               probeTimeout = probeTimeout - result.time;
+
               downloadSize = downloadSize * 2;
               downloadProbe();
           }
-          else{
+          else {
             console.log('downloadProbeCompleted');
           console.dir(result);
-            downloadSize = result.loaded;
-            if(result.bandwidth<=20){
+              console.log('final: ' +testSize);
+            downloadSize = testSize;
+            if(result.bandwidth<=30){
               concurrentDownloads = 1;
             }
-            else if((result.bandwidth>20 )&&(result.bandwidth<=40)){
+            else if((result.bandwidth>30 )&&(result.bandwidth<=125)){
+                console.log('inside this');
               concurrentDownloads = 3;
             }else{
               concurrentDownloads = 6;
@@ -369,7 +378,7 @@
 
         var baseUrl = (version === 'IPv6') ? 'http://' + testPlan.baseUrlIPv6 : 'http://' + testPlan.baseUrlIPv4;
 
-        var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(baseUrl + '/download?bufferSize='+downloadSize, 'GET', concurrentDownloads, 15000, 15000,10, downloadHttpOnComplete, downloadHttpOnProgress,
+        var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(baseUrl + '/download?bufferSize='+downloadSize, 'GET', concurrentDownloads, 10000, 10000,10, downloadHttpOnComplete, downloadHttpOnProgress,
             downloadHttpOnAbort, downloadHttpOnTimeout, downloadHttpOnError);
         downloadHttpConcurrentProgress.initiateTest();
     }
