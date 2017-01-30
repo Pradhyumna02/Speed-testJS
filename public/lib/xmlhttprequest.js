@@ -207,6 +207,7 @@
           result.id = this.id;
           this.currentTime = Date.now();
           result.totalTime = this.currentTime - this.prevTime;
+            result.time = this.currentTime - this.startTime;
           var transferSizeMbs = ((response.loaded - this.prevLoad) * 8) / 1000000;
           var transferDurationSeconds = result.totalTime/1000;
           result.bandwidth = transferSizeMbs/transferDurationSeconds;

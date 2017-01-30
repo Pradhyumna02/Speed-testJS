@@ -39,6 +39,10 @@
   var currentTest;
   var probeTimeout = 3000;
   var concurrentDownloads;
+ var testSize;
+    var maxBandwidthArray = [];
+    var onProgressSize;
+
     function initTest() {
         function addEvent(el, ev, fn) {
             void (el.addEventListener && el.addEventListener(ev, fn, false));
@@ -182,6 +186,13 @@
     function downloadProbe() {
 
         function downloadProbeTestOnComplete(result) {
+
+            //console.log(result.bandwidth + 'hello' + result.finalSize);
+            if (result.finalSize !== undefined) {
+                //console.log('testObj: ' + result.testSize);
+                testSize = result.testSize;
+            }
+
           currentTest = 'download';
           option.series[0].data[0].value = 0;
           option.series[0].data[0].name = 'Testing Download ...';
@@ -195,17 +206,36 @@
           myChart.setOption(option, true);
           if(result.running) {
               probeTimeout = probeTimeout - result.time;
+
               downloadSize = downloadSize * 2;
               downloadProbe();
           }
-          else{
-            console.log('downloadProbeCompleted');
+          else {
           console.dir(result);
-            downloadSize = result.loaded;
-            if(result.bandwidth<=20){
+              maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                 return +a - +b;
+              });
+              var start = Math.round(maxBandwidthArray.length * 0.3);
+              var end = Math.round(maxBandwidthArray.length * 0.9);
+              var sliceData = maxBandwidthArray.slice(start, end);
+                var maxBandwidth = sliceData[sliceData.length-1];
+              console.log('final: ' +testSize + 'maxBand: ' +maxBandwidth);
+              //console.log(1000000 * maxBandwidth);
+              //downloadSize = testSize;
+             //downloadSize =  1000000 * maxBandwidth/2;
+             // console.log('***' +downloadSize);
+              console.log('actualSize: ' +maxBandwidth*1200000*1.2);
+              console.log((maxBandwidth*1200000*1.2)/2);
+              downloadSize = (maxBandwidth*1200000*1.2);
+              if (downloadSize > 532421875) {
+                  downloadSize = 532421875;
+              }
+            //downloadSize = testSize;
+            if(maxBandwidth<=100){
               concurrentDownloads = 1;
             }
-            else if((result.bandwidth>20 )&&(result.bandwidth<=40)){
+            else if((maxBandwidth>100)&&(maxBandwidth<=300)){
+                console.log('inside this');
               concurrentDownloads = 3;
             }else{
               concurrentDownloads = 6;
@@ -216,6 +246,12 @@
 
       function downloadProbeTestOnProgress(result) {
         option.series[0].data[0].value = result.bandwidth;
+          maxBandwidthArray.push(result.bandwidth);
+          //console.log(result.finalSize);
+          //if (result.bandwidth > maxBandwidth) {
+          //    maxBandwidth = result.bandwidth;
+          //}
+
         myChart.setOption(option, true);
       }
 

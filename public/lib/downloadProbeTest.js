@@ -112,6 +112,10 @@
       clearInterval(this.interval);
      var self =this;
       result.running = true;
+       var value = 15000 * result.loaded/result.time;
+       var testValue = 1200000*1.2*result.bandwidth;
+       result.testSize = testValue;
+       result.finalSize = value;
      self.clientCallbackComplete(result);
 
    };
@@ -122,8 +126,9 @@
    */
    downloadProbeTest.prototype.onTestProgress = function(result){
      result.running = true;
+       var value = 15000 * result.loaded/result.time;
+       result.finalSize = value;
      this.clientCallbackProgress(result);
-
 
    };
 
