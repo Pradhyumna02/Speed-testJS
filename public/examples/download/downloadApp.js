@@ -37,11 +37,12 @@
   var probeRuns = 20;
   var counter = 0;
   var currentTest;
-  var probeTimeout = 3000;
+  var probeTimeout = 15000;
   var concurrentDownloads;
  var testSize;
     var maxBandwidthArray = [];
     var onProgressSize;
+    var prev_download_size = 10000;
 
     function initTest() {
         function addEvent(el, ev, fn) {
@@ -187,59 +188,114 @@
 
         function downloadProbeTestOnComplete(result) {
 
-            //console.log(result.bandwidth + 'hello' + result.finalSize);
-            if (result.finalSize !== undefined) {
-                //console.log('testObj: ' + result.testSize);
-                testSize = result.testSize;
+            currentTest = 'download';
+            option.series[0].data[0].value = 0;
+            option.series[0].data[0].name = 'Testing Download ...';
+            option.series[0].detail.formatter = formatSpeed;
+            option.series[0].detail.show = true;
+            myChart.setOption(option, true);
+            counter++;
+            probeRuns++;
+
+            maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                return +a - +b;
+            });
+
+            var start = Math.round(maxBandwidthArray.length * 0.3);
+            var end = Math.round(maxBandwidthArray.length * 0.9);
+            var sliceData = maxBandwidthArray.slice(start, end);
+            var maxBandwidth = sliceData[sliceData.length-1];
+
+            if (maxBandwidth <= 100) {
+                concurrentDownloads = 1;
+            }
+            else if ((maxBandwidth > 100) && (maxBandwidth <= 300)) {
+                console.log('inside this');
+                concurrentDownloads = 3;
+            } else {
+                concurrentDownloads = 6;
             }
 
-          currentTest = 'download';
-          option.series[0].data[0].value = 0;
-          option.series[0].data[0].name = 'Testing Download ...';
-          option.series[0].detail.formatter = formatSpeed;
-          option.series[0].detail.show = true;
-          myChart.setOption(option, true);
-          counter++;
-          probeRuns++;
+            option.series[0].data[0].value = result.bandwidth;
+            myChart.setOption(option, true);
+            if (result.running) {
+                probeTimeout = probeTimeout - result.time;
+//console.log(probeTimeout);
+                var new_download_size = probeTimeout * result.loaded/result.time;
+                console.log('newdonwloadSoze: ' +new_download_size);
+                console.log(prev_download_size);
+                if (new_download_size > prev_download_size) {
+                    downloadSize = new_download_size;
+                    prev_download_size = new_download_size;
+                } else {
 
-          option.series[0].data[0].value = result.bandwidth;
-          myChart.setOption(option, true);
-          if(result.running) {
-              probeTimeout = probeTimeout - result.time;
+                    maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                        return +a - +b;
+                    });
+                    var start = Math.round(maxBandwidthArray.length * 0.3);
+                    var end = Math.round(maxBandwidthArray.length * 0.9);
+                    var sliceData = maxBandwidthArray.slice(start, end);
+                    var sum = sliceData.reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
+                    var mean = sum / sliceData.length;
+                    console.log('mean: ' +mean);
+                }
 
-              downloadSize = downloadSize * 2;
-              downloadProbe();
-          }
+                maxBandwidthArray = [];
+                downloadProbe();
+            }
+
+            ////console.log(result.bandwidth + 'hello' + result.finalSize);
+            //if (result.finalSize !== undefined) {
+            //    //console.log('testObj: ' + result.testSize);
+            //    testSize = result.testSize;
+            //}
+
+
+
           else {
           console.dir(result);
-              maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
-                 return +a - +b;
-              });
-              var start = Math.round(maxBandwidthArray.length * 0.3);
-              var end = Math.round(maxBandwidthArray.length * 0.9);
-              var sliceData = maxBandwidthArray.slice(start, end);
-                var maxBandwidth = sliceData[sliceData.length-1];
-              console.log('final: ' +testSize + 'maxBand: ' +maxBandwidth);
-              //console.log(1000000 * maxBandwidth);
-              //downloadSize = testSize;
-             //downloadSize =  1000000 * maxBandwidth/2;
-             // console.log('***' +downloadSize);
-              console.log('actualSize: ' +maxBandwidth*1200000*1.2);
-              console.log((maxBandwidth*1200000*1.2)/2);
-              downloadSize = (maxBandwidth*1200000*1.2);
-              if (downloadSize > 532421875) {
-                  downloadSize = 532421875;
-              }
-            //downloadSize = testSize;
-            if(maxBandwidth<=100){
-              concurrentDownloads = 1;
-            }
-            else if((maxBandwidth>100)&&(maxBandwidth<=300)){
-                console.log('inside this');
-              concurrentDownloads = 3;
-            }else{
-              concurrentDownloads = 6;
-            }
+                maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                    return +a - +b;
+                });
+                var start = Math.round(maxBandwidthArray.length * 0.3);
+                var end = Math.round(maxBandwidthArray.length * 0.9);
+                var sliceData = maxBandwidthArray.slice(start, end);
+                var sum = sliceData.reduce(function (a, b) {
+                    return a + b;
+                }, 0);
+                var mean = sum / sliceData.length;
+                console.log('mean: ' +mean);
+
+            //  maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+            //     return +a - +b;
+            //  });
+            //  var start = Math.round(maxBandwidthArray.length * 0.3);
+            //  var end = Math.round(maxBandwidthArray.length * 0.9);
+            //  var sliceData = maxBandwidthArray.slice(start, end);
+            //    var maxBandwidth = sliceData[sliceData.length-1];
+            //  console.log('final: ' +testSize + 'maxBand: ' +maxBandwidth);
+            //  //console.log(1000000 * maxBandwidth);
+            //  //downloadSize = testSize;
+            // //downloadSize =  1000000 * maxBandwidth/2;
+            // // console.log('***' +downloadSize);
+            //  console.log('actualSize: ' +maxBandwidth*1200000*1.2);
+            //  console.log((maxBandwidth*1200000*1.2)/2);
+            //  downloadSize = (maxBandwidth*1200000*1.2);
+            //  if (downloadSize > 532421875) {
+            //      downloadSize = 532421875;
+            //  }
+            ////downloadSize = testSize;
+            //if(maxBandwidth<=100){
+            //  concurrentDownloads = 1;
+            //}
+            //else if((maxBandwidth>100)&&(maxBandwidth<=300)){
+            //    console.log('inside this');
+            //  concurrentDownloads = 3;
+            //}else{
+            //  concurrentDownloads = 6;
+            //}
             void (!(testPlan.hasIPv6 === 'IPv6') && setTimeout(function () { !firstRun && downloadTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4'); }, 500));
           }
          }
