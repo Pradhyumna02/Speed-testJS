@@ -110,7 +110,7 @@
    */
    downloadProbeTest.prototype.onTestComplete = function (result) {
       clearInterval(this.interval);
-     var self =this;
+     var self = this;
       result.running = true;
        var value = 15000 * result.loaded/result.time;
        var testValue = 1200000*1.2*result.bandwidth;

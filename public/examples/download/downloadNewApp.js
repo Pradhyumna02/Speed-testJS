@@ -34,11 +34,15 @@
     var startTestButton;
     var firstRun = true;
     var downloadSize = 10000;
-    var concurrentRuns = 4;
-    var downloadTestlength = 20000;
-    var downloadTestTimeout = 20000;
-    var version = 'IPv4';
-    var prevDownloadSize = 0;
+    var probeRuns = 20;
+    var counter = 0;
+    var currentTest;
+    var probeTimeout = 15000;
+    var concurrentDownloads;
+    var testSize;
+    var maxBandwidthArray = [];
+    var onProgressSize;
+    var prev_download_size = 10000;
 
     function initTest() {
         function addEvent(el, ev, fn) {
@@ -149,6 +153,7 @@
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
                 testPlan.baseUrlIPv4 = '69.252.86.194';
+                testPlan.hasIPv6 = false;
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
@@ -168,7 +173,6 @@
                 resultsEl[i].innerHTML = '';
             }
         }
-
         downloadProbe();
 
         //update button text to communicate current state of test as In Progress
@@ -181,12 +185,11 @@
     }
 
     function downloadProbe() {
-        var currentTest = 'download';
 
         function calculateStatsonComplete(result) {
             var finalValue = parseFloat(Math.round(result.stats.mean * 100) / 100).toFixed(2);
             finalValue = (finalValue > 1000) ? parseFloat(finalValue / 1000).toFixed(2) + ' Gbps' : finalValue + ' Mbps';
-            //void ((version === 'IPv6') && uploadTest('IPv4'));
+            void ((version === 'IPv6') && downloadTest('IPv4'));
             if (!(version === 'IPv6')) {
                 //update dom with final result
                 startTestButton.disabled = false;
@@ -205,66 +208,158 @@
             updateValue([currentTest, '-', version].join(''), finalValue);
         }
 
-        function calculateStatsonError(result) {
-            //set test value to 0
-            option.series[0].data[0].value = 0;
-            //updat test status to complete
-            option.series[0].data[0].name = 'Test Failed';
-            //set accessiblity aria-disabled state.
-            //This will also effect the visual look by corresponding css
-            startTestButton.setAttribute('aria-disabled', false);
-            //update button text to communicate current state of test as In Progress
-            startTestButton.innerHTML = 'Start Test';
-            //enable start button
-            startTestButton.disabled = false;
-            //hide current test value in chart
-            option.series[0].detail.show = false;
-            //update gauge
+        function downloadProbeTestOnProgress(result) {
+            option.series[0].data[0].value = result.bandwidth;
+            maxBandwidthArray.push(result.bandwidth);
+            //console.log(result.finalSize);
+            //if (result.bandwidth > maxBandwidth) {
+            //    maxBandwidth = result.bandwidth;
+            //}
+
             myChart.setOption(option, true);
         }
 
-        function adaptiveDownloadOnComplete(result) {
-            //console.log(result.size);
-            downloadSize = result.size;
-            prevDownloadSize = result.prevDownloadSize;
-            downloadTestTimeout = result.timeout;
-            if (result.calculateResults) {
-                var calculateMeanStats = new window.calculateStats('http://' + testPlan.baseUrlIPv4 + '/calculator', result.finalResults, calculateStatsonComplete, calculateStatsonError);
-                calculateMeanStats.performCalculations();
-            } else {
-                downloadProbe()
-            }
-
-
+        function downloadProbeTestOnError(result) {
+            //use default value for download testing
+            //void (!(testPlan.hasIPv6 === 'IPv6') && setTimeout(function () { downloadTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4'); }, 500));
         }
 
-        function adaptiveDownloadOnProgress(result) {
+        function downloadProbeTestOnComplete(result) {
+
+            currentTest = 'download';
             option.series[0].data[0].value = 0;
             option.series[0].data[0].name = 'Testing Download ...';
             option.series[0].detail.formatter = formatSpeed;
             option.series[0].detail.show = true;
             myChart.setOption(option, true);
-            //console.log('*********' + result);
-            option.series[0].data[0].value = result;
+            counter++;
+            probeRuns++;
+
+            maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                return +a - +b;
+            });
+
+            var start = Math.round(maxBandwidthArray.length * 0.3);
+            var end = Math.round(maxBandwidthArray.length * 0.9);
+            var sliceData = maxBandwidthArray.slice(start, end);
+            var maxBandwidth = sliceData[sliceData.length-1];
+
+            if (maxBandwidth <= 100) {
+                concurrentDownloads = 1;
+            }
+            else if ((maxBandwidth > 100) && (maxBandwidth <= 300)) {
+                console.log('inside this');
+                concurrentDownloads = 3;
+            } else {
+                concurrentDownloads = 6;
+            }
+
+            option.series[0].data[0].value = result.bandwidth;
             myChart.setOption(option, true);
+            if (result.running) {
+                probeTimeout = probeTimeout - result.time;
+                console.log(probeTimeout);
+                var new_download_size = probeTimeout * result.loaded/result.time;
+                console.log('newdonwloadSoze: ' +new_download_size);
+                console.log(prev_download_size);
+                if (new_download_size > prev_download_size) {
+                    downloadSize = new_download_size;
+                    prev_download_size = new_download_size;
+                }
 
+                if (probeTimeout > 3000) {
+                    maxBandwidthArray = [];
+                    downloadProbe();
+                } else {
+                    var calculateMeanStats = new window.calculateStats('http://' + testPlan.baseUrlIPv4 + '/calculator', maxBandwidthArray, calculateStatsonComplete, calculateStatsonError);
+                    calculateMeanStats.performCalculations();
+                    //maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                    //    return +a - +b;
+                    //});
+                    //var start = Math.round(maxBandwidthArray.length * 0.3);
+                    //var end = Math.round(maxBandwidthArray.length * 0.9);
+                    //var sliceData = maxBandwidthArray.slice(start, end);
+                    //var sum = sliceData.reduce(function (a, b) {
+                    //    return a + b;
+                    //}, 0);
+                    //var mean = sum / sliceData.length;
+                    //console.log('mean: ' +mean);
+                }
+
+            }
+
+            ////console.log(result.bandwidth + 'hello' + result.finalSize);
+            //if (result.finalSize !== undefined) {
+            //    //console.log('testObj: ' + result.testSize);
+            //    testSize = result.testSize;
+            //}
+
+
+
+            else {
+                console.dir(result);
+                maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                    return +a - +b;
+                });
+                var start = Math.round(maxBandwidthArray.length * 0.3);
+                var end = Math.round(maxBandwidthArray.length * 0.9);
+                var sliceData = maxBandwidthArray.slice(start, end);
+                var sum = sliceData.reduce(function (a, b) {
+                    return a + b;
+                }, 0);
+                var mean = sum / sliceData.length;
+                console.log('mean: ' +mean);
+
+                //  maxBandwidthArray = maxBandwidthArray.sort(function (a, b) {
+                //     return +a - +b;
+                //  });
+                //  var start = Math.round(maxBandwidthArray.length * 0.3);
+                //  var end = Math.round(maxBandwidthArray.length * 0.9);
+                //  var sliceData = maxBandwidthArray.slice(start, end);
+                //    var maxBandwidth = sliceData[sliceData.length-1];
+                //  console.log('final: ' +testSize + 'maxBand: ' +maxBandwidth);
+                //  //console.log(1000000 * maxBandwidth);
+                //  //downloadSize = testSize;
+                // //downloadSize =  1000000 * maxBandwidth/2;
+                // // console.log('***' +downloadSize);
+                //  console.log('actualSize: ' +maxBandwidth*1200000*1.2);
+                //  console.log((maxBandwidth*1200000*1.2)/2);
+                //  downloadSize = (maxBandwidth*1200000*1.2);
+                //  if (downloadSize > 532421875) {
+                //      downloadSize = 532421875;
+                //  }
+                ////downloadSize = testSize;
+                //if(maxBandwidth<=100){
+                //  concurrentDownloads = 1;
+                //}
+                //else if((maxBandwidth>100)&&(maxBandwidth<=300)){
+                //    console.log('inside this');
+                //  concurrentDownloads = 3;
+                //}else{
+                //  concurrentDownloads = 6;
+                //}
+                void (!(testPlan.hasIPv6 === 'IPv6') && setTimeout(function () { !firstRun && downloadTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4'); }, 500));
+            }
         }
 
-        function adaptiveDownloadOnAbort(result) {
+        function downloadProbeTestOnProgress(result) {
+            option.series[0].data[0].value = result.bandwidth;
+            maxBandwidthArray.push(result.bandwidth);
+            //console.log(result.finalSize);
+            //if (result.bandwidth > maxBandwidth) {
+            //    maxBandwidth = result.bandwidth;
+            //}
 
+            myChart.setOption(option, true);
         }
 
-        function adaptiveDownloadOnTimeout(result) {
-
+        function downloadProbeTestOnError(result) {
+            //use default value for download testing
+            //void (!(testPlan.hasIPv6 === 'IPv6') && setTimeout(function () { downloadTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4'); }, 500));
         }
-
-        function adaptiveDownloadOnError(result) {
-
-        }
-
-        var adaptiveDownload = new window.adaptiveDownload('http://' + testPlan.baseUrlIPv4 +'/download?bufferSize=', downloadSize, prevDownloadSize, concurrentRuns, downloadTestTimeout, downloadTestlength,
-            adaptiveDownloadOnComplete, adaptiveDownloadOnProgress, adaptiveDownloadOnAbort, adaptiveDownloadOnTimeout, adaptiveDownloadOnError);
-        adaptiveDownload.start();
+        var downloadProbeTestRun = new window.downloadProbeTest('http://' + testPlan.baseUrlIPv4 +'/download?bufferSize='+downloadSize, 'http://' + testPlan.baseUrlIPv4 + '/downloadProbe', false, probeTimeout,downloadSize,downloadProbeTestOnComplete,
+            downloadProbeTestOnError,downloadProbeTestOnProgress);
+        downloadProbeTestRun.start();
 
     }
 
@@ -284,17 +379,12 @@
     }
 
     function downloadTest(version) {
-        var currentTest = 'download';
-        option.series[0].data[0].value = 0;
-        option.series[0].data[0].name = 'Testing Download ...';
-        option.series[0].detail.formatter = formatSpeed;
-        option.series[0].detail.show = true;
-        myChart.setOption(option, true);
+
 
         function calculateStatsonComplete(result) {
             var finalValue = parseFloat(Math.round(result.stats.mean * 100) / 100).toFixed(2);
             finalValue = (finalValue > 1000) ? parseFloat(finalValue / 1000).toFixed(2) + ' Gbps' : finalValue + ' Mbps';
-            void ((version === 'IPv6') && uploadTest('IPv4'));
+            void ((version === 'IPv6') && downloadTest('IPv4'));
             if (!(version === 'IPv6')) {
                 //update dom with final result
                 startTestButton.disabled = false;
@@ -413,7 +503,7 @@
 
         var baseUrl = (version === 'IPv6') ? 'http://' + testPlan.baseUrlIPv6 : 'http://' + testPlan.baseUrlIPv4;
 
-        var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(baseUrl + '/download?bufferSize='+downloadSize, 'GET', 6, 15000, 15000,10, downloadHttpOnComplete, downloadHttpOnProgress,
+        var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(baseUrl + '/download?bufferSize='+downloadSize, 'GET', concurrentDownloads, 15000, 15000,10, downloadHttpOnComplete, downloadHttpOnProgress,
             downloadHttpOnAbort, downloadHttpOnTimeout, downloadHttpOnError);
         downloadHttpConcurrentProgress.initiateTest();
     }
