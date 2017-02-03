@@ -22,6 +22,7 @@
         this.callbackTimeout = callbackTimeout;
         this.callbackError = callbackError;
         this.firstrun = 0;
+        this.connection = {};
     }
 
     adaptiveDownload.prototype.start = function () {
@@ -48,18 +49,20 @@
         if (!this.running) {
             return;
         }
-
-        if (this.firstrun === 0) {
-            this.firstrun++;
-            this.finalResults = [];
-        }
+        console.log('insideon test download adap' +this.finalResults.length);
+        //if (this.firstrun === 0) {
+        //    console.log('reached here');
+        //    this.firstrun++;
+        //    this.finalResults = [];
+        //}
 
         if (this.running) {
             this.abortAll();
             this.timeout -= result.time;
             this.trackingOnComplete.timeout = this.timeout;
             console.log(this.timeout);
-            var downloadSize = this.timeout * result.loaded/result.time;
+            var downloadSize = (this.timeout * result.loaded/result.time);
+            //var downloadSize = this.size * 2;
             console.log('downloadSize: ' +downloadSize/1000000);
             console.log('prevSize: ' + this.prevDownloadSize/1000000);
             if (downloadSize > this.prevDownloadSize) {
@@ -68,12 +71,17 @@
                 this.trackingOnComplete.size = this.size;
                 this.trackingOnComplete.prevDownloadSize = this.prevDownloadSize;
                 this.trackingOnComplete.calculateResults = false;
+                //this.trackingOnComplete.downloadData = this.finalResults;
                 this.callbackComplete(this.trackingOnComplete);
                 this.progressCount = 0;
             } else {
                 this.abortAll();
+                //console.log(this.progressResults['arrayProgressResults' + 1]);
+                //console.log(this.progressResults['arrayProgressResults' + 2]);
+                //console.log(this.progressResults['arrayProgressResults' + 3]);
+                //console.log(this.progressResults['arrayProgressResults' + 4]);
                 this.trackingOnComplete.calculateResults = true;
-                this.trackingOnComplete.finalResults = this.finalResults;
+                //this.trackingOnComplete.finalResults = this.finalResults;
                 this.callbackComplete(this.trackingOnComplete);
             }
         }
@@ -87,6 +95,27 @@
             time: result.time
         });
 
+        var len1 = this.progressResults['arrayProgressResults' + 1].length;
+        var len2 = this.progressResults['arrayProgressResults' + 2].length;
+        var len3 = this.progressResults['arrayProgressResults' + 3].length;
+        var len4 = this.progressResults['arrayProgressResults' + 4].length;
+        //var len5 = this.progressResults['arrayProgressResults' + 5].length;
+        //var len6 = this.progressResults['arrayProgressResults' + 6].length;
+
+        if (len1 > 0 && len2 > 0 && len3 > 0 && len4 > 0) {
+            var b = (this.progressResults['arrayProgressResults' + 1][len1-1].loaded) * 8 * 1000;
+            var c = (this.progressResults['arrayProgressResults' + 1][len1-1].time) * 1000000;
+            var d = (this.progressResults['arrayProgressResults' + 2][len2-1].loaded) * 8 * 1000;
+            var e = (this.progressResults['arrayProgressResults' + 2][len2-1].time) * 1000000;
+            var f = (this.progressResults['arrayProgressResults' + 3][len3-1].loaded) * 8 * 1000;
+            var g = (this.progressResults['arrayProgressResults' + 3][len3-1].time) * 1000000;
+            var h = (this.progressResults['arrayProgressResults' + 4][len4-1].loaded) * 8 * 1000;
+            var i = (this.progressResults['arrayProgressResults' + 4][len4-1].time) * 1000000;
+            //var j = (this.progressResults['arrayProgressResults' + 5][len5-1].loaded) * 8 * 1000;
+            //var k = (this.progressResults['arrayProgressResults' + 5][len5-1].time) * 1000000;
+            //var l = (this.progressResults['arrayProgressResults' + 6][len6-1].loaded) * 8 * 1000;
+            //var m = (this.progressResults['arrayProgressResults' + 6][len6-1].time) * 1000000;
+        }
 
         //if (this.progressCount > 200) {
         //
@@ -123,18 +152,22 @@
         //console.log(this.progressResults['arrayProgressResults' + 2]);
         //console.log(this.progressResults['arrayProgressResults' + 3]);
         //console.log(this.progressResults['arrayProgressResults' + 4]);
-        var len1 = this.progressResults['arrayProgressResults' + 1].length;
-        var b = (this.progressResults['arrayProgressResults' + 1][len1-1].loaded) * 8 * 1000;
-        var c = (this.progressResults['arrayProgressResults' + 1][len1-1].time) * 1000000;
-        var len2 = this.progressResults['arrayProgressResults' + 2].length;
-        var d = (this.progressResults['arrayProgressResults' + 2][len2-1].loaded) * 8 * 1000;
-        var e = (this.progressResults['arrayProgressResults' + 2][len2-1].time) * 1000000;
-        var len3 = this.progressResults['arrayProgressResults' + 3].length;
-        var f = (this.progressResults['arrayProgressResults' + 3][len3-1].loaded) * 8 * 1000;
-        var g = (this.progressResults['arrayProgressResults' + 3][len3-1].time) * 1000000;
-        var len4 = this.progressResults['arrayProgressResults' + 4].length;
-        var h = (this.progressResults['arrayProgressResults' + 4][len4-1].loaded) * 8 * 1000;
-        var i = (this.progressResults['arrayProgressResults' + 4][len4-1].time) * 1000000;
+        //var len1 = this.progressResults['arrayProgressResults' + 1].length;
+        //console.log('len1: ' +len1);
+        //var b = (this.progressResults['arrayProgressResults' + 1][len1-1].loaded) * 8 * 1000;
+        //var c = (this.progressResults['arrayProgressResults' + 1][len1-1].time) * 1000000;
+        //var len2 = this.progressResults['arrayProgressResults' + 2].length;
+        //console.log('len2: ' +len2);
+        //var d = (this.progressResults['arrayProgressResults' + 2][len2-1].loaded) * 8 * 1000;
+        //var e = (this.progressResults['arrayProgressResults' + 2][len2-1].time) * 1000000;
+        //var len3 = this.progressResults['arrayProgressResults' + 3].length;
+        //console.log('len3: ' +len3);
+        //var f = (this.progressResults['arrayProgressResults' + 3][len3-1].loaded) * 8 * 1000;
+        //var g = (this.progressResults['arrayProgressResults' + 3][len3-1].time) * 1000000;
+        //var len4 = this.progressResults['arrayProgressResults' + 4].length;
+        //console.log('len4: ' +len4);
+        //var h = (this.progressResults['arrayProgressResults' + 4][len4-1].loaded) * 8 * 1000;
+        //var i = (this.progressResults['arrayProgressResults' + 4][len4-1].time) * 1000000;
         //var len5 = this.progressResults['arrayProgressResults' + 5].length;
         //var j = (this.progressResults['arrayProgressResults' + 5][len5-1].loaded) * 8 * 1000;
         //var k = (this.progressResults['arrayProgressResults' + 5][len5-1].time) * 1000000;
@@ -146,9 +179,12 @@
         //console.log(d/e);
         //console.log(h/i);
         var total = (b/c) + (d/e) + (f/g) + (h/i);
+        if (isFinite(total)) {
+            this.finalResults.push(total);
+            this.callbackProgress(total);
+        }
         //console.log('total: ' + total);
-        this.finalResults.push(total);
-        this.callbackProgress(total);
+
 
     };
 
@@ -161,11 +197,21 @@
 
     adaptiveDownload.prototype.onTestAbort = function () {
         if (this.running) {
-            if (this.finalResults && this.finalResults.length) {
-                this.callbackComplete(this.finalResults);
-            } else {
-                this.callbackError('no measurements obtained');
-            }
+
+            this.abortAll();
+            //console.log(this.progressResults['arrayProgressResults' + 1]);
+            //console.log(this.progressResults['arrayProgressResults' + 2]);
+            //console.log(this.progressResults['arrayProgressResults' + 3]);
+            //console.log(this.progressResults['arrayProgressResults' + 4]);
+            this.trackingOnComplete.calculateResults = true;
+            //this.trackingOnComplete.finalResults = this.finalResults;
+            this.callbackComplete(this.trackingOnComplete);
+            //console.log('on TestAbort');
+            //if (this.finalResults && this.finalResults.length) {
+            //    this.callbackComplete(this.finalResults);
+            //} else {
+            //    this.callbackError('no measurements obtained');
+            //}
             //this.clientCallbackError('OnTestAbort');
             this.running = false;
         }
@@ -173,6 +219,7 @@
 
     adaptiveDownload.prototype.onTestTimeout = function () {
         if (this.running) {
+            console.log('on TestTimeout');
             if (this.finalResults && this.finalResults.length) {
                 this.callbackComplete(this.finalResults);
             } else {
@@ -192,36 +239,6 @@
         }
     };
 
-    //downloadHttpConcurrentProgress.prototype.start = function () {
-    //    if (!this._running) {
-    //        return;
-    //    }
-    //    if (this.type === 'GET') {
-    //        for (var g = 1; g <= this.concurrentRuns; g++) {
-    //            this._testIndex++;
-    //            this['arrayResults' + this._testIndex] = [];
-    //            this._progressResults['arrayProgressResults' + this._testIndex] = [];
-    //            var request = new window.xmlHttpRequest('GET', this.url+ '&r=' + Math.random(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
-    //                this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this));
-    //            this._activeTests.push({
-    //                xhr: request,
-    //                testRun: this._testIndex
-    //            });
-    //            request.start(0, this._testIndex);
-    //        }
-    //        this._collectMovingAverages = true;
-    //    }
-    //    else {
-    //        for (var p = 1; p <= this.concurrentRuns; p++) {
-    //            this._testIndex++;
-    //            this._activeTests.push(this._testIndex);
-    //            this['testResults' + this._testIndex] = [];
-    //            this.test.start(this.size, this._testIndex);
-    //        }
-    //    }
-    //};
-
     window.adaptiveDownload = adaptiveDownload;
 
 })();
-

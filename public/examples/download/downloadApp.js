@@ -35,11 +35,13 @@
     var firstRun = true;
     var downloadSize = 10000;
     var concurrentRuns = 4;
-    var downloadTestlength = 20000;
-    var downloadTestTimeout = 20000;
+    var downloadTestlength = 15000;
+    var downloadTestTimeout = 15000;
     var version = 'IPv4';
     var prevDownloadSize = 0;
-
+    var testResults = [];
+    var prevSize;
+    var testSize = 56275310;
     function initTest() {
         function addEvent(el, ev, fn) {
             void (el.addEventListener && el.addEventListener(ev, fn, false));
@@ -224,12 +226,18 @@
         }
 
         function adaptiveDownloadOnComplete(result) {
+            console.log('in app.js: ' +testResults.length);
+            prevSize = result.size;
             //console.log(result.size);
+            //testResults.push.apply(testResults, result.downloadData);
             downloadSize = result.size;
             prevDownloadSize = result.prevDownloadSize;
             downloadTestTimeout = result.timeout;
             if (result.calculateResults) {
-                var calculateMeanStats = new window.calculateStats('http://' + testPlan.baseUrlIPv4 + '/calculator', result.finalResults, calculateStatsonComplete, calculateStatsonError);
+
+                var results = testResults.join("\",\"");
+                console.log(results);
+                var calculateMeanStats = new window.calculateStats('http://' + testPlan.baseUrlIPv4 + '/calculator', testResults, calculateStatsonComplete, calculateStatsonError);
                 calculateMeanStats.performCalculations();
             } else {
                 downloadProbe()
@@ -246,6 +254,7 @@
             myChart.setOption(option, true);
             //console.log('*********' + result);
             option.series[0].data[0].value = result;
+            testResults.push(result);
             myChart.setOption(option, true);
 
         }
