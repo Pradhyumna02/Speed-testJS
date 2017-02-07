@@ -97,6 +97,7 @@
   */
     xmlHttpRequest.prototype._handleLoadstart = function() {
       this.startTime = Date.now();
+        //console.log(this.startTime);
       this.prevTime = Date.now();
     };
   /**
@@ -187,6 +188,7 @@
       var transferSizeMbs = response.loaded * 8 / 1000000;
       var transferDurationSeconds = this.totalTime/1000;
       result.bandwidth = transferSizeMbs / transferDurationSeconds;
+      result.loaded = response.loaded;
       result.id = this.id;
       if(isFinite(result.bandwidth)) {
           if (this.method === 'GET') {
@@ -207,8 +209,9 @@
           result.totalTime = this.currentTime - this.prevTime;
           var transferSizeMbs = ((response.loaded - this.prevLoad) * 8) / 1000000;
           var transferDurationSeconds = result.totalTime/1000;
-            result.loaded = response.loaded;
-            result.time = Date.now() - this.startTime;
+            result.loaded = (response.loaded - this.prevLoad);
+            result.startTime = this.startTime;
+            result.currentTime = Date.now();
           result.bandwidth = transferSizeMbs/transferDurationSeconds;
           if(isFinite(result.bandwidth)){
             this.callbackProgress(result);

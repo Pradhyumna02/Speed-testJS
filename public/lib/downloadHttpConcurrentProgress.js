@@ -40,7 +40,7 @@
         this.concurrentRuns = concurrentRuns;
         this.timeout = timeout;
         this.testLength = testLength;
-        this.movingAverage = 6;
+        this.movingAverage = 10;
         //unique id or test
         this._testIndex = 0;
         //array holding all results
@@ -66,6 +66,12 @@
         this._collectMovingAverages = false;
         //monitor interval
         this.interval = null;
+        this.timestamp  = {};
+        this.bandwidthData = {};
+        this.currentTime = {};
+        this.testResults = {};
+        this.totalBytes = 0;
+        this.sampleStartTime;
     }
 
     /**
@@ -76,6 +82,7 @@
         if (this._running) {
             this.clientCallbackError(result);
             clearInterval(this.interval);
+            clearInterval(this.newinterval);
             this._running = false;
         }
     };
@@ -87,7 +94,9 @@
         if(this._running) {
             if ((Date.now() - this._beginTime) > this.testLength) {
               clearInterval(this.interval);
+                clearInterval(this.newinterval);
                 if (this.finalResults && this.finalResults.length) {
+                    console.log('reahce here');
                     this.clientCallbackComplete(this.finalResults);
                 } else {
                     this.clientCallbackError('no measurements obtained');
@@ -106,7 +115,9 @@
         if(this._running) {
             if ((Date.now() - this._beginTime) > this.testLength) {
                 clearInterval(this.interval);
+                clearInterval(this.newinterval);
                 if (this.finalResults && this.finalResults.length) {
+                    console.log('onTestTimeout');
                     this.clientCallbackComplete(this.finalResults);
                 } else {
                     this.clientCallbackError('no measurements obtained');
@@ -144,8 +155,10 @@
             //check this._running flag again since it may have been reset in abort
             if (this._running) {
                 clearInterval(this.interval);
+                clearInterval(this.newinterval);
                 this._running = false;
                 if (this.finalResults && this.finalResults.length) {
+                    console.log('on test complete');
                     this.clientCallbackComplete(this.finalResults);
                 } else {
                     this.clientCallbackError('no measurements obtained');
@@ -158,6 +171,10 @@
      * onProgress method
      */
     downloadHttpConcurrentProgress.prototype.onTestProgress = function (result) {
+
+        //console.log('startTime: ' + result.startTime);
+
+        //console.log(result.id + 'band: ' +result.bandwidth);
         //console.log((result.loaded * 8 * 1000)/(result.time * 1000000));
         if (!this._running) {
             return;
@@ -165,6 +182,7 @@
 
         if ((Date.now() - this._beginTime) > this.testLength) {
             clearInterval(this.interval);
+            clearInterval(this.newinterval);
             this.abortAll();
             if (this.finalResults && this.finalResults.length) {
                 this.clientCallbackComplete(this.finalResults);
@@ -179,15 +197,51 @@
         }
         //update progress count
         this._progressCount++;
+
+        if (this._progressCount === 1) {
+            this.sampleStartTime = Date.now();
+        }
         //populate array
-        this._progressResults['arrayProgressResults' + result.id].push(result.bandwidth);
+        this._progressResults['arrayProgressResults' + result.id].push(result.loaded);
+        this.totalBytes += result.loaded;
+        //console.log(this.totalBytes);
+        var movingAverage = (this.totalBytes * 8 * 1000/((result.currentTime - this.sampleStartTime) * 1000000));
+        //console.log(this.totalBytes * 8 * 1000/((result.currentTime - this.sampleStartTime) * 1000000));
+        this.clientCallbackProgress(movingAverage);
+        //this.bandwidthData[result.id] = (result.loaded);
+        //this.currentTime[result.id] = result.currentTime;
+        //this.testResults[result.id] = (result.loaded * 8 * 1000)/((result.currentTime - this.timestamp[result.id]) * 1000000);
+        //
+        //
+        //    // do some stuff
+        //var self = this;
+        //this.newinterval = setInterval(function () {
+        //    self.calculateStatistics();
+        //}, 25);
+
 
 
         //calculate moving average
-        if (this._progressCount % this.movingAverage === 0) {
-            this.calculateStats();
-        }
+        //if (this._progressCount % this.movingAverage === 0) {
+        //    this.calculateStats();
+        //}
     };
+
+
+    downloadHttpConcurrentProgress.prototype.calculateStatistics = function () {
+        var singleMovingAverage = 0;
+        var totalMovingAverage = 0;
+        var example = this.testResults;
+        for (var i = 1; i <= this.concurrentRuns; i++) {
+            singleMovingAverage += example[i];
+            //console.log('single: ' +singleMovingAverage);
+        }
+        totalMovingAverage += singleMovingAverage;
+        this.clientCallbackProgress(totalMovingAverage);
+        this.finalResults.push(totalMovingAverage);
+        //console.log(totalMovingAverage);
+    };
+
 
     /**
      * calculateStats method
@@ -237,10 +291,12 @@
         if (!this._running) {
             return;
         }
+
         if (this.type === 'GET') {
             for (var g = 1; g <= this.concurrentRuns; g++) {
                 this._testIndex++;
                 this['arrayResults' + this._testIndex] = [];
+                this.bandwidthData[g] = [];
                 this._progressResults['arrayProgressResults' + this._testIndex] = [];
                 var request = new window.xmlHttpRequest('GET', this.urls[g-1] + '&r=' + Math.random(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
                     this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this));
@@ -248,6 +304,7 @@
                     xhr: request,
                     testRun: this._testIndex
                 });
+                this.timestamp[g] = (Date.now());
                 request.start(0, this._testIndex);
             }
             this._collectMovingAverages = true;
@@ -282,7 +339,15 @@
         this._running = false;
         this._collectMovingAverages = false;
         clearInterval(this.interval);
+          clearInterval(this.newinterval);
         if (this.finalResults && this.finalResults.length) {
+            //console.log(this._progressResults['arrayProgressResults' + 1].join("\",\""));
+            //console.log(this._progressResults['arrayProgressResults' + 2].join("\",\""));
+            //console.log(this._progressResults['arrayProgressResults' + 3].join("\",\""));
+            //console.log(this._progressResults['arrayProgressResults' + 4].join("\",\""));
+            //console.log(this._progressResults['arrayProgressResults' + 5].join("\",\""));
+            //console.log(this._progressResults['arrayProgressResults' + 6].join("\",\""));
+
           this.clientCallbackComplete(this.finalResults);
         } else {
           this.clientCallbackError('no measurements obtained');

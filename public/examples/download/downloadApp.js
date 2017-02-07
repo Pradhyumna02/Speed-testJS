@@ -34,7 +34,7 @@
     var startTestButton;
     var firstRun = true;
     var downloadSize = 10000;
-    var port = [5020, 5021, 5023, 5024, 5025, 80];
+    var port = [5020, 5021, 5023, 5024, 5025, 5022];
     var urls = [];
     var size;
 

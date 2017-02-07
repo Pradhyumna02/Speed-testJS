@@ -108,7 +108,8 @@
           if (xhr.readyState === XMLHttpRequest.DONE) {
             self._running=false;
             var data = JSON.parse(xhr.responseText);
-            self.clientCallbackComplete(10000000);
+              console.log(27809523);
+            self.clientCallbackComplete(value);
           }
       };
       var requestTimeout;
