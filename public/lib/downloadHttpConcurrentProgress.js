@@ -32,14 +32,15 @@
      * @param function callback function for test suite timeout event
      * @param function callback function for test suite error event
      **/
-    function downloadHttpConcurrentProgress(url, type, concurrentRuns, timeout, testLength, movingAverage, callbackComplete, callbackProgress, callbackAbort,
+    function downloadHttpConcurrentProgress(urls, url, type, concurrentRuns, timeout, testLength, movingAverage, callbackComplete, callbackProgress, callbackAbort,
                                             callbackTimeout, callbackError) {
         this.url = url;
+        this.urls = urls;
         this.type = type;
         this.concurrentRuns = concurrentRuns;
         this.timeout = timeout;
         this.testLength = testLength;
-        this.movingAverage = movingAverage;
+        this.movingAverage = 6;
         //unique id or test
         this._testIndex = 0;
         //array holding all results
@@ -157,6 +158,7 @@
      * onProgress method
      */
     downloadHttpConcurrentProgress.prototype.onTestProgress = function (result) {
+        //console.log((result.loaded * 8 * 1000)/(result.time * 1000000));
         if (!this._running) {
             return;
         }
@@ -179,6 +181,8 @@
         this._progressCount++;
         //populate array
         this._progressResults['arrayProgressResults' + result.id].push(result.bandwidth);
+
+
         //calculate moving average
         if (this._progressCount % this.movingAverage === 0) {
             this.calculateStats();
@@ -189,12 +193,26 @@
      * calculateStats method
      */
     downloadHttpConcurrentProgress.prototype.calculateStats = function () {
+        //var a = this._progressResults['arrayProgressResults' + 1][this._progressResults['arrayProgressResults' + 1].length - 1];
+        //var b = this._progressResults['arrayProgressResults' + 2][this._progressResults['arrayProgressResults' + 2].length - 1];
+        //var c = this._progressResults['arrayProgressResults' + 3][this._progressResults['arrayProgressResults' + 3].length - 1];
+        //var d = this._progressResults['arrayProgressResults' + 4][this._progressResults['arrayProgressResults' + 4].length - 1];
+        //var e = this._progressResults['arrayProgressResults' + 5][this._progressResults['arrayProgressResults' + 5].length - 1];
+        //var f = this._progressResults['arrayProgressResults' + 6][this._progressResults['arrayProgressResults' + 6].length - 1];
+        ////console.log(a+b+c+d+e+f);
+        //var total = (a+b+c+d+e+f);
+        //if (isFinite(total)) {
+        //    this.clientCallbackProgress(total);
+        //    this.finalResults.push(total);
+        //}
+
         //loop thru active tests to calculate totalMovingAverage
         var totalMovingAverage = 0;
         for (var i = 0; i < this.concurrentRuns; i++) {
             // get array size and loop thru size of moving average series or array length
             var id = this._testIndex -i;
             var arrayData = 'arrayProgressResults' + id;
+
             var lastElem = Math.min(this._progressResults[arrayData].length, this.movingAverage);
             if (lastElem > 0) {
                 var singleMovingAverage = 0;
@@ -224,7 +242,7 @@
                 this._testIndex++;
                 this['arrayResults' + this._testIndex] = [];
                 this._progressResults['arrayProgressResults' + this._testIndex] = [];
-                var request = new window.xmlHttpRequest('GET', this.url+ '&r=' + Math.random(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
+                var request = new window.xmlHttpRequest('GET', this.urls[g-1] + '&r=' + Math.random(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
                     this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this));
                 this._activeTests.push({
                     xhr: request,
