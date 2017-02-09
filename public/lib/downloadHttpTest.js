@@ -144,17 +144,8 @@
         this._activeTests.length = 0;
         //checking if we can continue with the test
         if ((Date.now() - this._beginTime) < this.testLength) {
-            console.log(result);
-            console.log(this.finalResults.slice(this.finalResults.length-10, 10));
-            console.log('packets: ' + (parseFloat(result.loaded) - parseFloat(this.size)));
             if (result.time > 1000 && this.isProbing) {
                 this.isProbing = false;
-
-                //var percentLoaded = (result.time/15000)*100;
-                //this.size = (100 -percentLoaded) * result.loaded;
-                //if(this.size>532421875){
-                //  this.size = 532421875;
-                //}
             }
             if (this.isProbing) {
                 this.size = this.size * 4;
