@@ -211,6 +211,7 @@
             var transferDurationSeconds = result.totalTime / 1000;
             result.bandwidth = transferSizeMbs / transferDurationSeconds;
             result.loaded = response.loaded;
+              result.time = Date.now() - this.startTime;
             if (isFinite(result.bandwidth)) {
               this.callbackProgress(result);
               this.prevTime = this.currentTime;

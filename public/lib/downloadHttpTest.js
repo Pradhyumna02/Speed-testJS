@@ -69,8 +69,8 @@
         this.interval = null;
         //probing flag
         this.isProbing = true;
-
-        console.log(this.url);
+        this.totalBytes = 0;
+        this.probeTimeout = 3000;
     }
 
     /**
@@ -144,11 +144,13 @@
         this._activeTests.length = 0;
         //checking if we can continue with the test
         if ((Date.now() - this._beginTime) < this.testLength) {
-            if (result.time > 1000 && this.isProbing) {
-                this.isProbing = false;
-            }
+            //if (result.time > 1000 && this.isProbing) {
+            //    this.isProbing = false;
+            //}
             if (this.isProbing) {
-                this.size = this.size * 4;
+                console.log(result.bandwidth);
+                this.size = ((this.probeTimeout - result.time) * result.loaded)/result.time;
+                //this.size = this.size * 4;
             }
             else {
                 this.size = this.timeout * result.loaded/result.time;
@@ -174,6 +176,7 @@
      * onProgress method
      */
     downloadHttpTest.prototype.onTestProgress = function (result) {
+        this.totalBytes += result.loaded;
         if (!this._running) {
             return;
         }
@@ -240,9 +243,9 @@
         var url;
         if (this.type === 'GET') {
             for (var g = 1; g <= this.concurrentRuns; g++) {
-
                 if (!this.isProbing) {
-                    url = this.urls[g-1] + this.size
+                    url = this.urls[g-1] + this.size;
+                    console.log(url);
                 } else {
                     url = this.url + this.size;
                 }
@@ -273,7 +276,7 @@
      * Cancel the test
      */
     downloadHttpTest.prototype.abortAll = function () {
-        this._running = false;
+        //this._running = false;
         for (var i = 0; i < this._activeTests.length; i++) {
             if (typeof(this._activeTests[i]) !== 'undefined') {
                 this._activeTests[i].xhr._request.abort();
@@ -285,6 +288,7 @@
      * Monitor testSeries
      */
     downloadHttpTest.prototype._monitor = function () {
+
         if ((Date.now() - this._beginTime) > (this.testLength)) {
             this._running = false;
             this._collectMovingAverages = false;
@@ -295,6 +299,44 @@
                 this.clientCallbackError('no measurements obtained');
             }
             this.abortAll();
+        }
+
+        if ((Date.now() - this._beginTime) > this.probeTimeout && this.isProbing) {
+            console.log(Date.now() - this._beginTime);
+            this.isProbing = false;
+            this.abortAll();
+            console.log(this.finalResults);
+            this.finalResults = this.finalResults.sort(function (a,b) {
+                return +b - +a
+            });
+            var sum = 0;
+            var iterationValue = 10;
+            if (this.finalResults.length < iterationValue) {
+                iterationValue = this.finalResults.length
+            }
+            console.log(this.finalResults);
+            for (var i = 0; i < iterationValue; i++) {
+                sum += this.finalResults[i];
+            }
+            console.log('sum: ' +sum);
+            var average = sum/iterationValue;
+            console.log('average: ' +average);
+            console.log((this.testLength - this.probeTimeout));
+            console.log(1000000 * average);
+            //this.size = 1000000 * average;
+            this.size = ((this.testLength - this.probeTimeout) * this.totalBytes)/(3000 * 4);
+            if (this.size > 532421875) {
+                this.size = 532421875;
+            }
+this.size = this.size/6;
+            this.concurrentRuns = 6;
+            this.movingAverage = 20;
+            if (average < 10) {
+                this.concurrentRuns = 1;
+                //also set the progressInterval
+            }
+            this.finalResults.length = 0;
+            this.start();
         }
     };
 
