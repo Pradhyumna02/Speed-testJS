@@ -72,7 +72,7 @@
         //probing flag
         this.isProbing = true;
         //total probe time
-        this.probeTotalTime =0;
+        this.probeTotalTime = 0;
         //total probe bytes
         this.probeTotalBytes = 0;
 
@@ -136,19 +136,19 @@
         this._activeTests.length =0;
         //checking if we can continue with the test
         if ((Date.now() - this._beginTime) < this.testLength) {
-          if(this.isProbing) {
-            this.abortAll();
-            this.probeTotalTime = this.probeTotalTime + result.time;
-            this.probeTotalBytes = this.probeTotalBytes + result.loaded;
-            this.size = (this.probeTimeTimeout-result.time) * result.loaded/result.time;
-          }
-          else{
-            this.size = this.timeout * result.loaded/result.time;
-          }
-          if(this.size>this.maxDownloadSize){
-            this.size = this.maxDownloadSize;
-          }
-          this.start();
+            if (this.isProbing) {
+                this.abortAll();
+                this.probeTotalTime = this.probeTotalTime + result.time;
+                this.probeTotalBytes = this.probeTotalBytes + result.loaded;
+                this.size = (this.probeTimeTimeout - result.time) * result.loaded / result.time;
+            }
+            else {
+                this.size = this.timeout * result.loaded / result.time;
+            }
+            if (this.size > this.maxDownloadSize) {
+                this.size = this.maxDownloadSize;
+            }
+            this.start();
         }
         else {
             //check this._running flag again since it may have been reset in abort
@@ -305,15 +305,15 @@
      */
     downloadHttpConcurrentProgress.prototype.initiateTest = function(){
         this._testIndex = 0;
-        this._results.length=0;
-        this.finalResults.length=0;
-        this._activeTests.length=0;
+        this._results.length = 0;
+        this.finalResults.length = 0;
+        this._activeTests.length = 0;
         this._progressResults = {};
         this._progressCount = 0;
         this._running = true;
         this.interval = null;
         this.isProbing = true;
-        this.probeTotalTime =0;
+        this.probeTotalTime = 0;
         this.probeTotalBytes = 0;
         this.start();
         var self = this;
