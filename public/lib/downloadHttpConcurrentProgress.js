@@ -69,7 +69,7 @@
     this.results =[];
     //results count
     this.resultsCount = 0;
-
+      this.downloadResults = [];
   }
 
   /**
@@ -99,8 +99,9 @@
     if(this._running) {
       if ((Date.now() - this._beginTime) > this.testLength) {
         clearInterval(this.interval);
+        this.abortAll();
         if (this.finalResults && this.finalResults.length) {
-          this.clientCallbackComplete(this.finalResults);
+          this.clientCallbackComplete(this.downloadResults);
         } else {
           this.clientCallbackError('no measurements obtained');
         }
@@ -126,7 +127,7 @@
       this.totalBytes = this.totalBytes + result.loaded;
       if(((this.testLength - result.time) * result.loaded / result.time) > this.size) {
         this.size = (this.testLength - result.time) * result.loaded / result.time;
-      };
+      }
       this.concurrentRuns = this.concurrentRuns*3;
     }
     if(this.size>this.maxDownloadSize){
@@ -135,6 +136,7 @@
     if(this.concurrentRuns > this.maxConcurrentRuns){
       this.concurrentRuns = this.maxConcurrentRuns;
     }
+    //this.abortAll();
     this.start();
   };
 
@@ -230,7 +232,7 @@
             }
           }
           singleMovingAverage = singleMovingAverage / lastElem;
-          this.finalResults.push(singleMovingAverage);
+          this.downloadResults.push(singleMovingAverage);
           this.clientCallbackProgress(singleMovingAverage);
         }
 
@@ -241,12 +243,13 @@
     if ((Date.now() - this._beginTime) > (this.testLength)) {
       this._running = false;
       clearInterval(this.interval);
+      this.abortAll();
       if (this.finalResults && this.finalResults.length) {
-        this.clientCallbackComplete(this.finalResults);
+        console.log(this.downloadResults.join("\",\""));
+        this.clientCallbackComplete(this.downloadResults);
       } else {
         this.clientCallbackError('no measurements obtained');
       }
-      this.abortAll();
     }
 
   };

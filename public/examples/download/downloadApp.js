@@ -33,8 +33,8 @@
     var option;
     var startTestButton;
     var firstRun = true;
-    var downloadSize = 10000;
-    var downloadCurrentRuns = 1;
+    var downloadSize = 230483949;
+    var downloadCurrentRuns = 18;
     var downloadTestTimeout = 12000;
     var downloadTestLength = 12000;
     var downloadMovingAverage = 10;
@@ -152,6 +152,8 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
+                testPlan.hasIPv6 = false;
+                testPlan.baseUrlIPv4NoPort = '69.252.86.194';
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
@@ -247,7 +249,7 @@
 
         function downloadHttpOnComplete(result) {
 
-            var calculateMeanStats = new window.calculateStats('http://' + testPlan.baseUrlIPv4 + '/calculator', result, calculateStatsonComplete, calculateStatsonError);
+            var calculateMeanStats = new window.calculateStats('http://' + testPlan.baseUrlIPv4NoPort + '/calculator', result, calculateStatsonComplete, calculateStatsonError);
             calculateMeanStats.performCalculations();
         }
 
