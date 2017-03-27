@@ -123,9 +123,24 @@
         }
       }
 
-      latencyTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4');
+      //latencyTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4');
+      websocketUploadTest();
 
     });
+  }
+
+  function websocketUploadTest() {
+console.log('reached here');
+    function webSocketUploadOnComplete(result) {
+      console.log(result);
+    }
+
+    function webSocketUploadOnError(result) {
+      console.log(result);
+    }
+
+    var websocketUpload = new window.websocketUploadTest(testPlan.webSocketUrlIPv4, 100000, webSocketUploadOnComplete, webSocketUploadOnError);
+    websocketUpload.start();
   }
 
   function hasClass(el, className) {
