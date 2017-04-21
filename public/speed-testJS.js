@@ -138,9 +138,16 @@ console.log('reached here');
     function webSocketUploadOnError(result) {
       console.log(result);
     }
+var websocketUrls = [];
+    //for (var b = 0; b < 6; b++) {
+      websocketUrls.push('ws://69.252.86.194:5003/ws');
+      websocketUrls.push('ws://69.252.86.194:5003/ws');
+      websocketUrls.push('ws://69.252.86.194:5003/ws');
+      websocketUrls.push('ws://69.252.86.194:5003/ws');
+    //}
 
-    var websocketUpload = new window.websocketUploadTest(testPlan.webSocketUrlIPv4, 100000, webSocketUploadOnComplete, webSocketUploadOnError);
-    websocketUpload.start();
+    var websocketUpload = new window.websocketUploadTest(websocketUrls, 130000, webSocketUploadOnComplete, webSocketUploadOnError);
+    websocketUpload.createWebSocket();
   }
 
   function hasClass(el, className) {

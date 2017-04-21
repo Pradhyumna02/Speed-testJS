@@ -33,6 +33,7 @@
         this.callbackOnError = callbackOnError;
         //unique id or test
         this._testIndex = 0;
+        this.totalBytes = 0;
         //array for packet loss;
         this.packetLossArray = [];
         //array for results
@@ -41,27 +42,42 @@
 
     }
 
+    websocketUploadTest.prototype.createWebSocket = function () {
+        for (var i = 0; i < 4; i++) {
+            console.log(this.url[i]);
+            //this.url = 'ws://69.252.86.194:5003';
+            this._request = new WebSocket(this.url[i], 'json', {'force new connection':true} );
+        }
+        this.start();
+
+    };
+
     /**
      * Initiate the request
      */
     websocketUploadTest.prototype.start = function () {
         console.log('in here');
-        if (this._request === null ||
-            typeof this._request === 'undefined') {
+        //if (this._request === null ||
+        //    typeof this._request === 'undefined') {
             console.log(this.url);
-            this.url = 'ws://69.252.70.100:5003';
-            this._request = new WebSocket(this.url);
             this._request.onopen = this._handleOnOpen.bind(this);
             this._request.onmessage = this._handleOnMessage.bind(this);
             this._request.onclose = this._handleOnClose.bind(this);
             this._request.onerror = this._handleOnError.bind(this);
-        }
+            this.uploadStartTime = Date.now();
+            var self = this;
+            this.interval = setInterval(function () {
+                self.monitor();
+            }, 50);
+        //}
+
     };
 
     websocketUploadTest.prototype._handleOnOpen = function () {
         var uploadData = getRandomData(this.transferSize);
         this.startTime = Date.now();
-        var data = {'data':uploadData,'flag':'upload', time: this.startTime};
+        console.log('size: ' +uploadData.length);
+        var data = {'data':uploadData,'flag':'upload', time: this.startTime, mask: true};
         this._sendMessage(data);
     };
 
@@ -77,10 +93,21 @@
         console.log(event);
         var duration = (Date.now() - this.startTime)/1000;
         var transferSizeMbs = (this.transferSize * 8) / 1000000;
-        console.log(transferSizeMbs/duration);
-        console.log(this.transferSize/JSON.parse(event.timeStamp));
+        console.log('speed:' +transferSizeMbs/duration);
+        this.totalBytes += this.transferSize
+        console.log(this.totalBytes/duration);
+        //console.log(this.transferSize * 8 * 1000/(JSON.parse(event.timeStamp)*1000000));
         var uploadresult = Math.round((this.transferSize/duration)/1000000).toFixed(2);
-        console.log('upload:' +uploadresult);
+        clearInterval(this.interval);
+        if (Date.now() - this.uploadStartTime < 12000) {
+            //this.transferSize = this.transferSize * 2;
+            this._handleOnOpen();
+        } else {
+            this.close();
+        }
+
+        //console.log('upload:' +uploadresult);
+
     };
 
     /**
@@ -106,92 +133,17 @@
         this._request.close();
     };
 
+    websocketUploadTest.prototype.monitor = function () {
+        this.calculateResults();
+        //console.log (this._request.bufferedAmount);
+        //this._request.bufferedAmount();
+    };
 
+    websocketUploadTest.prototype.calculateResults = function () {
+        var time = Date.now() - this.startTime;
+      console.log(((this.transferSize - this._request.bufferedAmount) * 8 * 1000)/(time * 1000000));
+    };
 
-    ///**
-    // * webSocket onOpen Event
-    // */
-    //websocketUploadTest.prototype._handleOnOpen = function () {
-    //    this._testIndex++;
-    //    var obj = {'data': getRandomData(this.transferSize), 'flag': 'upload', id:this._testIndex,size: this.transferSize};
-    //    this.startTime = Date.now();
-    //    this.sendMessage(obj);
-    //};
-    //
-    ///**
-    // * send message for current webSocket
-    // */
-    //websocketUploadTest.prototype.sendMessage = function (message) {
-    //    //var obj = {'data': this.transferSize, 'flag': 'download'};
-    //    //var uploadData = getRandomData(100000);
-    //    this._request.send(JSON.stringify(message), {mask: true});
-    //};
-    //
-    ///**
-    // * webSocket onMessage received Event
-    // */
-    //websocketUploadTest.prototype._handleOnMessage = function (event) {
-    //    this.controller(event);
-    //};
-    //
-    //
-    ///**
-    // * webSocket onMessage error Event
-    // */
-    //websocketUploadTest.prototype.controller = function (event) {
-    //    var data = JSON.parse(event.data);
-    //    console.log(event.data);
-    //
-    //    var duration = (JSON.parse(event.data) - this.startTime)/1000;
-    //    //console.log('size of the array: ', uploadData.length);
-    //    var uploadresult = Math.round((this.transferSize/duration)/1000000).toFixed(2);
-    //    console.log('upload result:', uploadresult);
-    //    var filesize = uploadData.length/1000000;
-    //    console.log('Upload Speed in Megabytes/sec', (filesize/duration).toFixed(2));
-    //    console.log('Upload Speed in Megabytes/sec :', ((filesize/duration)*8).toFixed(2));
-    //    console.log('time', + duration);
-    //
-    //    console.log('########################');
-    //    var id = data.id;
-    //    var packetLoss = (parseFloat(data.binary.data.length) - parseFloat(data.dataLength));
-    //    console.log(packetLoss);
-    //    if(packetLoss>0){
-    //        this.packetLossArray.push(packetLoss);
-    //    }
-    //    var dataInMb  =(data.binary.data.length* 8) / 1000000;
-    //    var timeInSeconds = (Date.now() -data.startTime) /1000;
-    //    var bandwidthMbs = dataInMb/timeInSeconds;
-    //    this.resultsArray.push(bandwidthMbs);
-    //    if(this._testIndex< 10){
-    //        this._testIndex++;
-    //        this.transferSize = this.transferSize*2;
-    //        var obj = {'data': this.transferSize, 'flag': 'download', id:this._testIndex,size: this.transferSize};
-    //        this.sendMessage(obj);
-    //    }
-    //    else{
-    //        this.close();
-    //        console.log(this.resultsArray);
-    //        console.log(this.packetLossArray);
-    //    }
-    //
-    //};
-    //
-    //
-    ///**
-    // * webSocket onMessage error Event
-    // */
-    //websocketUploadTest.prototype._handleOnError = function (event) {
-    //    this.callbackOnError(event);
-    //};
-    //
-    ///**
-    // * webSocket close Event
-    // */
-    //websocketUploadTest.prototype._handleOnClose = function (event) {
-    //    if ((event !== null) && (event.code === 1006)) {
-    //        this.callbackOnError('connection error');
-    //    }
-    //};
 
     /**
      * close webSocket
@@ -214,15 +166,16 @@
         }
 
         result = result + result.substring(0, size - result.length);
-        var blob;
-        try {
-            blob = new Blob([result], {type: "application/octet-stream"});
-        } catch (e) {
-            var bb = new BlobBuilder; // jshint ignore:line
-            bb.append(result);
-            blob = bb.getBlob("application/octet-stream");
-        }
-        return blob;
+        return result;
+        //var blob;
+        //try {
+        //    blob = new Blob([result], {type: "application/octet-stream"});
+        //} catch (e) {
+        //    var bb = new BlobBuilder; // jshint ignore:line
+        //    bb.append(result);
+        //    blob = bb.getBlob("application/octet-stream");
+        //}
+        //return blob;
     }
 
     window.websocketUploadTest = websocketUploadTest;
