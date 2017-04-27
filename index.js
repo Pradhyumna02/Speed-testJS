@@ -94,6 +94,7 @@ app.listen(5022);
 app.listen(5023);
 app.listen(5024);
 app.listen(5025);
+app.listen(5003);
 //max download buffer size based off of download probing data
 global.maxDownloadBuffer = 532421875;
 global.maxUploadBuffer = 10000000;
@@ -103,7 +104,19 @@ wss.on('connection', function connection(ws) {
     console.log('client connected');
 
     ws.on('message', function incoming(messageObj) {
-        var message = JSON.parse(messageObj);
+
+        var ENCODING = 'utf-16le';
+
+        var responseObject = {
+            time: Date.now()
+        };
+        var str = JSON.stringify(responseObject);
+        var buf = new Buffer(str, ENCODING);
+
+        //var data2 = new Uint8Array(str);
+
+        ws.send(buf);
+        //var message = JSON.parse(messageObj);
         /*
          if (message.flag === 'download'){
          var img = images[message.data];
@@ -119,15 +132,15 @@ wss.on('connection', function connection(ws) {
          ws.send(JSON.stringify(request_obj));
          } else if (message.flag === 'latency'){
          */
-        if (message.flag === 'latency') {
-            console.log('received: %s', new Date().getTime());
-            ws.send(message.data);
-        } else if (message.flag === 'upload') {
-            var uploadtime = {'data': Date.now().toString()};
-            ws.send(JSON.stringify(uploadtime.data));
-        } else {
-            console.log("error message");
-        }
+        //if (message.flag === 'latency') {
+        //    console.log('received: %s', new Date().getTime());
+        //    ws.send(message.data);
+        //} else if (message.flag === 'upload') {
+        //    var uploadtime = {'data': Date.now().toString()};
+        //    ws.send(JSON.stringify(uploadtime.data));
+        //} else {
+        //    console.log("error message");
+        //}
 
     });
 });

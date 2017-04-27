@@ -130,6 +130,23 @@
   }
 
   function websocketUploadTest() {
+
+    //var url = 'ws://69.252.75.2:5003/ws';
+    //function webSocketUploadOnComplete (result) {
+    //  console.log(result);
+    //}
+    //
+    //function webSocketUploadOnError(result) {
+    //  console.log(result);
+    //}
+    //
+    //var websocketUploadTestSuite = new window.websocketUpload(url, 130000, webSocketUploadOnComplete, webSocketUploadOnError);
+    //websocketUploadTestSuite.start();
+
+
+
+
+
 console.log('reached here');
     function webSocketUploadOnComplete(result) {
       console.log(result);
@@ -140,13 +157,13 @@ console.log('reached here');
     }
 var websocketUrls = [];
     //for (var b = 0; b < 6; b++) {
-      websocketUrls.push('ws://69.252.86.194:5003/ws');
+      websocketUrls.push('ws://127.0.0.1:8081/ws');
       websocketUrls.push('ws://69.252.86.194:5003/ws');
       websocketUrls.push('ws://69.252.86.194:5003/ws');
       websocketUrls.push('ws://69.252.86.194:5003/ws');
     //}
 
-    var websocketUpload = new window.websocketUploadTest(websocketUrls, 130000, webSocketUploadOnComplete, webSocketUploadOnError);
+    var websocketUpload = new window.websocketUploadTest(websocketUrls, 100000, webSocketUploadOnComplete, webSocketUploadOnError);
     websocketUpload.createWebSocket();
   }
 
