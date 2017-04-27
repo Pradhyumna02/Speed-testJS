@@ -150,6 +150,7 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
+                testPlan.hasIPv6 = false;
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
@@ -185,7 +186,7 @@
                 resultsEl[i].innerHTML = '';
             }
         }
-      void (!(testPlan.hasIPv6 === 'IPv6') && setTimeout(function () { !firstRun && uploadTest(testPlan.hasIPv6 ? 'IPv6' : 'IPv4'); }, 500));
+      void (!(testPlan.hasIPv6 === 'IPv6') && setTimeout(function () { !firstRun && websocketUploadTest(); }, 500));
 
 
       //update button text to communicate current state of test as In Progress
@@ -313,17 +314,70 @@
                 myChart.setOption(option, true);
         }
 
-        var baseUrl = (version === 'IPv6') ? testPlan.baseUrlIPv6NoPort : testPlan.baseUrlIPv4NoPort;
-        for (var i = 0; i < ports.length; i++) {
-            for (var b = 0; b < 6; b++) {
-                urls.push('http://' + baseUrl + ':' + ports[i] + '/upload');
-            }
+        //var baseUrl = (version === 'IPv6') ? testPlan.baseUrlIPv6NoPort : testPlan.baseUrlIPv4NoPort;
+        //for (var i = 0; i < ports.length; i++) {
+        //    for (var b = 0; b < 6; b++) {
+        //        urls.push('http://' + baseUrl + ':' + ports[i] + '/upload');
+        //    }
+        //}
+        //
+        //var uploadHttpConcurrentProgress = new window.uploadHttpConcurrentProgress(urls, 'POST', uploadCurrentRuns, uploadTestTimeout, uploadTestLength, uploadMovingAverage, uploadHttpOnComplete, uploadHttpOnProgress,
+        //    uploadHttpOnAbort, uploadHttpOnTimeout, uploadHttpOnError, uploadSize, testPlan.maxuploadSize, monitorInterval);
+        //
+        //uploadHttpConcurrentProgress.initiateTest();
+    }
+
+    function websocketUploadTest() {
+        var currentTest = 'upload';
+        option.series[0].data[0].value = 0;
+        option.series[0].data[0].name = 'Testing Upload...';
+        option.series[0].detail.formatter = formatSpeed;
+        option.series[0].detail.show = true;
+        myChart.setOption(option, true);
+
+        function webSocketUploadOnComplete(result) {
+
+            var finalValue = result.toFixed(2);
+            var version = 'IPv4';
+            //var finalValue = parseFloat(Math.round(result.mean * 100) / 100).toFixed(2);
+            //finalValue = (finalValue > 1000) ? parseFloat(finalValue / 1000).toFixed(2) + ' Gbps' : finalValue + ' Mbps';
+            //void ((version === 'IPv6') && uploadTest('IPv4'));
+            //if (!(version === 'IPv6')) {
+                //update dom with final result
+                startTestButton.disabled = false;
+                //update button text to communicate current state of test as In Progress
+                startTestButton.innerHTML = 'Start Test';
+                option.series[0].data[0].value = 0;
+                option.series[0].data[0].name = 'Test Complete';
+                //set accessiblity aria-disabled state.
+                //This will also effect the visual look by corresponding css
+                startTestButton.setAttribute('aria-disabled', false);
+                startTestButton.disabled = false;
+                option.series[0].detail.show = false;
+                myChart.setOption(option, true);
+            //}
+
+            updateValue([currentTest, '-', version].join(''), finalValue);
         }
 
-        var uploadHttpConcurrentProgress = new window.uploadHttpConcurrentProgress(urls, 'POST', uploadCurrentRuns, uploadTestTimeout, uploadTestLength, uploadMovingAverage, uploadHttpOnComplete, uploadHttpOnProgress,
-            uploadHttpOnAbort, uploadHttpOnTimeout, uploadHttpOnError, uploadSize, testPlan.maxuploadSize, monitorInterval);
+        function webSocketUploadOnProgress(result) {
+            option.series[0].data[0].value = result;
+            myChart.setOption(option, true);
+        }
 
-        uploadHttpConcurrentProgress.initiateTest();
+        function webSocketUploadOnError(result) {
+            console.log(result);
+        }
+        var websocketUrls = [];
+        //for (var b = 0; b < 6; b++) {
+        websocketUrls.push('ws://127.0.0.1:8081/ws');
+        websocketUrls.push('wws://127.0.0.1:8081/ws');
+        websocketUrls.push('ws://127.0.0.1:8081/ws');
+        websocketUrls.push('ws://127.0.0.1:8081/ws');
+        //}
+
+        var websocketUpload = new window.websocketUploadTest(websocketUrls, 200000, webSocketUploadOnComplete, webSocketUploadOnProgress, webSocketUploadOnError);
+        websocketUpload.start();
     }
 
 
