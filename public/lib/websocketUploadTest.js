@@ -27,7 +27,7 @@
      * @param function callback for onerror function
      */
     function websocketUploadTest(url, transferSize, callbackOnMessage, callbackOnError) {
-        this.url = url;
+        this.url = 'ws://69.252.75.2:5003/ws';
         this.transferSize = transferSize;
         this.callbackOnMessage = callbackOnMessage;
         this.callbackOnError = callbackOnError;
@@ -40,16 +40,29 @@
         this.resultsArray = [];
         //start time data capture
         this.payload = null;
+        //store multiple websockets
+        this.webSockets = [];
+        //concurrent runs. number of websockets connections
+        this.concurrentRuns = 3;
+        this.uploadStartTime = Date.now();
 
     }
 
-    websocketUploadTest.prototype.createWebSocket = function () {
-        for (var i = 0; i < 1; i++) {
-            console.log(this.url[i]);
-            //this.url = 'ws://69.252.86.194:5003';
-            this._request = new WebSocket(this.url[i]);
-        }
-        this.start();
+    websocketUploadTest.prototype.createWebSocket = function (id) {
+
+        var webSocket = new window.webSocketData(this.url,this.onTestOpen.bind(this),
+            this.onMessageComplete.bind(this),this.onTestError.bind(this));
+        webSocket.start(id);
+        this.webSockets.push(webSocket);
+
+
+
+        //for (var i = 0; i < 1; i++) {
+        //    console.log(this.url[i]);
+        //    //this.url = 'ws://69.252.86.194:5003';
+        //    this._request = new WebSocket(this.url[i]);
+        //}
+        //this.start();
 
     };
 
@@ -57,27 +70,20 @@
      * Initiate the request
      */
     websocketUploadTest.prototype.start = function () {
-        console.log('in here');
-        //if (this._request === null ||
-        //    typeof this._request === 'undefined') {
-            console.log(this.url);
-            this._request.onopen = this._handleOnOpen.bind(this);
-            this._request.onmessage = this._handleOnMessage.bind(this);
-            this._request.onclose = this._handleOnClose.bind(this);
-            this._request.onerror = this._handleOnError.bind(this);
-            this.uploadStartTime = Date.now();
-
-        //}
-
+        for (var i = 0; i <= this.concurrentRuns; i++) {
+            this.createWebSocket(i);
+        }
     };
 
-    websocketUploadTest.prototype._handleOnOpen = function () {
+    websocketUploadTest.prototype.onTestOpen = function (id) {
         if (this.payload === null) {
             this.payload = test(this.transferSize);
         }
 
+        this.webSockets[id].sendMessage(this.payload);
 
-        this.sendStartTime = Date.now();
+
+        //this.sendStartTime = Date.now();
 
         //var data = {
         //    id: 1,
@@ -108,7 +114,7 @@
         //
         //this.actualSize = data2.byteLength;
         //this._request.send(data2);
-        this._request.send(this.payload);
+        //this._request.send(this.payload);
         //var uploadData = getRandomData(this.transferSize);
         //this.startTime = Date.now();
         //console.log('size: ' +uploadData.length);
@@ -121,11 +127,10 @@
       this._request.send(message)
     };
 
-    websocketUploadTest.prototype._handleOnMessage = function (event) {
-
-        console.log(event);
+    websocketUploadTest.prototype.onMessageComplete = function (result) {
+        console.log(result);
         //var serverTime = (Date.now() - JSON.parse(event.data).time)/1000;
-            var sendTime = (Date.now() - this.sendStartTime) / 1000;
+            var sendTime = (Date.now() - result.startTime) / 1000;
         this.totalBytes += this.transferSize;
         console.log('******** Transfer Speed Total Bytes ************');
         console.log((this.totalBytes * 8 * 1000)/((Date.now() - this.uploadStartTime) * 1000000));
@@ -135,9 +140,10 @@
             //console.log('upload speed in mbps: ' +(this.size/sendTime) * 8);
         //console.log('upload speed time: '+(this.transferSize * 8)/(serverTime * 1000000));
             console.log('upload speed: '+(this.transferSize * 8)/(sendTime * 1000000));
-        if (Date.now() - this.uploadStartTime < 15000) {
+        if (Date.now() - this.uploadStartTime < 12000) {
+            console.log('********************************************');
             //this.transferSize = this.transferSize * 2;
-            this._handleOnOpen();
+            this.onTestOpen(result.id);
         } else {
             this.close();
         }
@@ -166,7 +172,7 @@
     /**
      * webSocket onMessage error Event
      */
-    websocketUploadTest.prototype._handleOnError = function (event) {
+    websocketUploadTest.prototype.onTestError = function (event) {
         this.callbackOnError(event);
     };
 
@@ -209,7 +215,9 @@
      * close webSocket
      */
     websocketUploadTest.prototype.close = function () {
-        this._request.close();
+        for (var i = 0; i < this.webSockets.length; i++) {
+            this.webSockets[i].close();
+        }
     };
 
     function getRandomData(size) {

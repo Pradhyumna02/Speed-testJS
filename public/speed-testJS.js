@@ -158,13 +158,13 @@ console.log('reached here');
 var websocketUrls = [];
     //for (var b = 0; b < 6; b++) {
       websocketUrls.push('ws://127.0.0.1:8081/ws');
-      websocketUrls.push('ws://69.252.86.194:5003/ws');
-      websocketUrls.push('ws://69.252.86.194:5003/ws');
-      websocketUrls.push('ws://69.252.86.194:5003/ws');
+      websocketUrls.push('wws://127.0.0.1:8081/ws');
+      websocketUrls.push('ws://127.0.0.1:8081/ws');
+      websocketUrls.push('ws://127.0.0.1:8081/ws');
     //}
 
     var websocketUpload = new window.websocketUploadTest(websocketUrls, 100000, webSocketUploadOnComplete, webSocketUploadOnError);
-    websocketUpload.createWebSocket();
+    websocketUpload.start();
   }
 
   function hasClass(el, className) {

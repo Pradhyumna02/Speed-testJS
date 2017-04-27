@@ -61,20 +61,26 @@
      */
     webSocketData.prototype._handleOnOpen = function () {
         this.callbackOnOpen(this.id);
+
     };
 
     /**
      * send message for current webSocket
      */
     webSocketData.prototype.sendMessage = function (obj) {
-        this._request.send(JSON.stringify(obj), {mask: true});
+        this.startTime = Date.now();
+        this._request.send(obj);
     };
 
     /**
      * webSocket onMessage received Event
      */
     webSocketData.prototype._handleOnMessage = function (event) {
-        this.callbackOnMessage(event);
+        var result = {};
+        result.id = this.id;
+        result.event = event;
+        result.startTime = this.startTime;
+        this.callbackOnMessage(result);
     };
 
     /**
@@ -104,4 +110,3 @@
     window.webSocketData = webSocketData;
 
 })();
-
