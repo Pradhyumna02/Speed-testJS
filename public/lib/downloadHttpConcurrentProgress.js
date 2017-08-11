@@ -70,6 +70,12 @@
         this.resultsCount = 0;
         //results to send to client
         this.downloadResults = [];
+        this.prevDownloadSpeed = [];
+        this.prevDownloadTime = [];
+        this.currentDownloadSpeed = [];
+        this.currentDownloadTime = [];
+        this.currentStats = [];
+        this.prevStats = [];
     }
 
     /**
@@ -133,6 +139,9 @@
         if (!this._running) {
             return;
         }
+
+        this.currentDownloadSpeed[result.id-1] = result.loaded;
+        this.currentDownloadTime[result.id-1] = result.totalTime;
         this.totalBytes = this.totalBytes + result.loaded;
         this._storeResults(result);
 
@@ -147,6 +156,10 @@
       }
 
             for (var g = 1; g <= this.concurrentRuns; g++) {
+                this.currentDownloadSpeed[this._testIndex] = 0;
+                this.currentDownloadTime[this._testIndex] = 0;
+                this.prevDownloadSpeed[this._testIndex] = 0;
+                this.prevDownloadTime[this._testIndex] = 0;
                 this._testIndex++;
                 var request = new window.xmlHttpRequest('GET', this.urls[g]+ this.size +  '&r=' + Math.random(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
                     this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this),this.progressIntervalDownload);
@@ -190,39 +203,59 @@
         var totalTime = 0;
         var intervalCounter = 0;
         this.resultsCount++;
+        var totalSpeed = 0;
 
-        if (this.results.length > 0) {
-            for (var i = 0; i < this.results.length; i++) {
-                if (this.results[i].timeStamp > (Date.now() - this.monitorInterval)) {
-                    intervalBandwidth = intervalBandwidth + parseFloat(this.results[i].bandwidth);
-                    totalLoaded = totalLoaded + this.results[i].chunckLoaded;
-                    totalTime = totalTime + this.results[i].totalTime;
-                    intervalCounter++;
-                }
-            }
-            if (!isNaN(intervalBandwidth / intervalCounter)) {
-                var transferSizeMbs = (totalLoaded * 8) / 1000000;
-                var transferDurationSeconds = this.monitorInterval / 1000;
-                this.finalResults.push(transferSizeMbs / transferDurationSeconds);
-                var lastElem = Math.min(this.finalResults.length, this.movingAverage);
-                if (lastElem > 0) {
-                    var singleMovingAverage = 0;
-                    for (var j = 1; j <= lastElem; j++) {
-                        if (isFinite(this.finalResults[this.finalResults.length - j])) {
-                            singleMovingAverage = singleMovingAverage + this.finalResults[this.finalResults.length - j];
 
-                        }
-                    }
-                    singleMovingAverage = singleMovingAverage / lastElem;
-                    if (singleMovingAverage > 0) {
-                        this.downloadResults.push(singleMovingAverage);
-                        this.clientCallbackProgress(singleMovingAverage);
-                    }
-                }
-
-            }
-
+        for (var i = 0; i < this.concurrentRuns; i++) {
+            var sampleBandwidth = this.currentDownloadSpeed[i] - this.prevDownloadSpeed[i];
+            var time = this.currentDownloadTime[i] - this.prevDownloadTime[i];
+            var speed = calculateSpeedMbps(sampleBandwidth, time);
+            totalSpeed += speed;
+            console.log('speed' + i + ': ' + speed + 'time ' +time);
+            this.prevDownloadSpeed[i] = this.currentDownloadSpeed[i];
+            this.prevDownloadTime[i] = this.currentDownloadTime[i];
         }
+
+        if (i === this.concurrentRuns) {
+            console.log('totalSpeed: ' +totalSpeed);
+            if (!isNaN(totalSpeed)) {
+                this.downloadResults.push(totalSpeed);
+                this.clientCallbackProgress(totalSpeed);
+            }
+        }
+
+        // if (this.results.length > 0) {
+        //     for (var i = 0; i < this.results.length; i++) {
+        //         if (this.results[i].timeStamp > (Date.now() - this.monitorInterval)) {
+        //             intervalBandwidth = intervalBandwidth + parseFloat(this.results[i].bandwidth);
+        //             totalLoaded = totalLoaded + this.results[i].chunckLoaded;
+        //             totalTime = totalTime + this.results[i].totalTime;
+        //             intervalCounter++;
+        //         }
+        //     }
+        //     if (!isNaN(intervalBandwidth / intervalCounter)) {
+        //         var transferSizeMbs = (totalLoaded * 8) / 1000000;
+        //         var transferDurationSeconds = this.monitorInterval / 1000;
+        //         this.finalResults.push(transferSizeMbs / transferDurationSeconds);
+        //         var lastElem = Math.min(this.finalResults.length, this.movingAverage);
+        //         if (lastElem > 0) {
+        //             var singleMovingAverage = 0;
+        //             for (var j = 1; j <= lastElem; j++) {
+        //                 if (isFinite(this.finalResults[this.finalResults.length - j])) {
+        //                     singleMovingAverage = singleMovingAverage + this.finalResults[this.finalResults.length - j];
+        //
+        //                 }
+        //             }
+        //             singleMovingAverage = singleMovingAverage / lastElem;
+        //             if (singleMovingAverage > 0) {
+        //                 this.downloadResults.push(singleMovingAverage);
+        //                 this.clientCallbackProgress(singleMovingAverage);
+        //             }
+        //         }
+        //
+        //     }
+        //
+        // }
         //check for end of test
         if ((Date.now() - this._beginTime) > (this.testLength)) {
             this._running = false;
@@ -236,6 +269,10 @@
         }
 
     };
+
+    function calculateSpeedMbps(bytes, milliSeconds) {
+        return bytes / (125 * milliSeconds);
+    }
 
     /**
      * reset test variables

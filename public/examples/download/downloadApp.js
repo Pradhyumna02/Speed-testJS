@@ -34,14 +34,14 @@
     var startTestButton;
     var firstRun = true;
     var downloadSize = 230483949;
-    var downloadCurrentRuns = 18;
-    var downloadTestTimeout = 12000;
-    var downloadTestLength = 12000;
+    var downloadCurrentRuns = 4;
+    var downloadTestTimeout = 15000;
+    var downloadTestLength = 15000;
     var downloadMovingAverage = 18;
     var downloadProgressInterval = 25;
     var urls = [];
     var ports = [5020, 5021, 5022, 5023, 5024, 5025];
-    var monitorInterval = 100;
+    var monitorInterval = 1000;
     var sliceStartValue = 0.3;
     var sliceEndValue = 0.9;
 
@@ -153,6 +153,8 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
+                testPlan.baseUrlIPv4NoPort = '69.241.67.130';
+                testPlan.hasIPv6 = false;
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
