@@ -34,7 +34,7 @@
     var startTestButton;
     var firstRun = true;
     var downloadSize = 230483949;
-    var downloadCurrentRuns = 4;
+    var downloadCurrentRuns = 18;
     var downloadTestTimeout = 15000;
     var downloadTestLength = 15000;
     var downloadMovingAverage = 18;
@@ -153,7 +153,7 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
-                testPlan.baseUrlIPv4NoPort = '69.241.67.130';
+                testPlan.baseUrlIPv4NoPort = '69.241.67.134';
                 testPlan.hasIPv6 = false;
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();

@@ -99,6 +99,7 @@
     xmlHttpRequest.prototype._handleLoadstart = function() {
       this.startTime = Date.now();
       this.prevTime = Date.now();
+      console.log('startTime: ' +this.startTime);
     };
   /**
   * Handle eror event
@@ -211,6 +212,7 @@
         var result = {};
         result.id = this.id;
         result.totalTime = Date.now() - this.startTime;
+        result.startTime = this.startTime;
         result.loaded = response.loaded;
         this.callbackProgress(result);
     };

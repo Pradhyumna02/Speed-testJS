@@ -74,8 +74,8 @@
         this.prevDownloadTime = [];
         this.currentDownloadSpeed = [];
         this.currentDownloadTime = [];
-        this.currentStats = [];
-        this.prevStats = [];
+        this.count = 0;
+        this.actualSpeedArray = [];
     }
 
     /**
@@ -139,7 +139,9 @@
         if (!this._running) {
             return;
         }
-
+        if (this.count === 0) {
+            this.actualStartTime = result.startTime;
+        }
         this.currentDownloadSpeed[result.id-1] = result.loaded;
         this.currentDownloadTime[result.id-1] = result.totalTime;
         this.totalBytes = this.totalBytes + result.loaded;
@@ -204,22 +206,34 @@
         var intervalCounter = 0;
         this.resultsCount++;
         var totalSpeed = 0;
-
-
+        var actualTotalSpeed = 0;
+console.log('actial time ' + (Date.now() - this.actualStartTime));
+console.log(this.currentDownloadTime);
+console.log(this.currentDownloadSpeed);
+console.log(this.prevDownloadSpeed);
         for (var i = 0; i < this.concurrentRuns; i++) {
             var sampleBandwidth = this.currentDownloadSpeed[i] - this.prevDownloadSpeed[i];
             var time = this.currentDownloadTime[i] - this.prevDownloadTime[i];
-            var speed = calculateSpeedMbps(sampleBandwidth, time);
-            totalSpeed += speed;
-            console.log('speed' + i + ': ' + speed + 'time ' +time);
-            this.prevDownloadSpeed[i] = this.currentDownloadSpeed[i];
-            this.prevDownloadTime[i] = this.currentDownloadTime[i];
+            // console.log('********' + ' bytes' + i + ':' +sampleBandwidth + ' time: ' +time + ' **************');
+            if (sampleBandwidth !== 0 && time !== 0) {
+                var speed = calculateSpeedMbps(sampleBandwidth, 1000);
+                var actualSpeed = calculateSpeedMbps(sampleBandwidth, time);
+                console.log('speed' + i + ': ' + speed + ' time ' +time + ' bytes ' +sampleBandwidth);
+                totalSpeed += speed;
+                actualTotalSpeed += actualSpeed;
+                // console.log('speed' + i + ': ' + speed + 'time ' +time + ' actualSpeed: ' +actualSpeed);
+                // console.log('current SPeed: ' +this.prevDownloadSpeed[i] + 'current: ' +this.currentDownloadSpeed[i] + 'i ' +i);
+                this.prevDownloadSpeed[i] = this.currentDownloadSpeed[i];
+                this.prevDownloadTime[i] = this.currentDownloadTime[i];
+            }
+
         }
 
         if (i === this.concurrentRuns) {
-            console.log('totalSpeed: ' +totalSpeed);
+            console.log('totalSpeed: ' +totalSpeed + ' actualSpeed: ' +actualTotalSpeed);
             if (!isNaN(totalSpeed)) {
                 this.downloadResults.push(totalSpeed);
+                this.actualSpeedArray.push(actualTotalSpeed);
                 this.clientCallbackProgress(totalSpeed);
             }
         }
@@ -261,6 +275,13 @@
             this._running = false;
             clearInterval(this.interval);
             if (this.downloadResults && this.downloadResults.length) {
+                this.actualSpeedArray = this.actualSpeedArray.slice(4, this.actualSpeedArray.length);
+                console.log(this.actualSpeedArray);
+                var sum = this.actualSpeedArray.reduce(function (a, b) {
+                    return a + b;
+                }, 0);
+                var mean = sum / this.actualSpeedArray.length;
+                console.log('mean: ' +mean);
                 this.clientCallbackComplete(this.downloadResults);
             } else {
                 this.clientCallbackError('no measurements obtained');
