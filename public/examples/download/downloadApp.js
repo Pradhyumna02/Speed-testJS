@@ -153,7 +153,7 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
-                testPlan.baseUrlIPv4NoPort = '69.241.67.134';
+                testPlan.baseUrlIPv4NoPort = '127.0.0.1';
                 testPlan.hasIPv6 = false;
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
@@ -316,7 +316,6 @@
         for (var i = 0; i < ports.length; i++) {
             for (var b = 0; b < 6; b++) {
                 urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
-
             }
         }
 
