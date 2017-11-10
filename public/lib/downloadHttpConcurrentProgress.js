@@ -231,6 +231,21 @@
             //*** Needs to be removed ***
             if (time === 0) {
                 //needs to be changed to max time of this.currentDownloadSpeed
+
+                // var serverLocations = Object.keys(this.currentDownloadTime);
+                //
+                // var self = this;
+                //
+                // console.log(serverLocations);
+                // serverLocations.sort(function (a, b) {
+                //     console.log('a: ' +a  + 'b: ' +b);
+                //     console.log(self.currentDownloadSpeed[a]);
+                //     console.log(self.currentDownloadSpeed[b]);
+                //     return self.currentDownloadTime[a] - self.currentDownloadTime[b]
+                // });
+                //
+                // console.log(Object.keys(self.currentDownloadTime).reduce(function(a, b){ return self.currentDownloadTime[a] > self.currentDownloadTime[b] ? a : b }));
+
                 var checkTime = Date.now() - this.actualStartTime;
                 this.prevDownloadTime[i] = (Date.now() - this.actualStartTime);
             }
@@ -246,8 +261,9 @@
             console.log('totalSpeed: ' +totalSpeed + ' actualSpeed: ' +actualTotalSpeed + 'totalBytesDownloaded: ' +totalBytesDownloaded);
             if (!isNaN(totalSpeed)) {
                 this.downloadResults.push(totalSpeed);
-                this.actualSpeedArray.push(actualTotalSpeed);
-                this.clientCallbackProgress(totalSpeed);
+                //FIXME we don't need .toFixed(2) here.. just for running automation test
+                this.actualSpeedArray.push(+actualTotalSpeed.toFixed(2));
+                this.clientCallbackProgress(actualTotalSpeed);
             }
         }
 
@@ -289,13 +305,17 @@
             clearInterval(this.interval);
             if (this.downloadResults && this.downloadResults.length) {
                 console.log(this.actualSpeedArray);
-                this.actualSpeedArray = this.actualSpeedArray.slice(4, this.actualSpeedArray.length-1);
+                var arr = this.actualSpeedArray;
+                //TODO needs to remove the above line not needed
+                this.actualSpeedArray = this.actualSpeedArray.slice(3, this.actualSpeedArray.length);
+                console.log(this.actualSpeedArray.length);
                 var sum = this.actualSpeedArray.reduce(function (a, b) {
                     return a + b;
                 }, 0);
                 var mean = sum / this.actualSpeedArray.length;
                 console.log('mean: ' +mean);
-                this.clientCallbackComplete(this.downloadResults);
+                // this.clientCallbackComplete(mean);
+                this.clientCallbackComplete(arr, mean);
             } else {
                 this.clientCallbackError('no measurements obtained');
             }

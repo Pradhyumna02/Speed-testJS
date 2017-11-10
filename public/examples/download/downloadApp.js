@@ -34,7 +34,7 @@
     var startTestButton;
     var firstRun = true;
     var downloadSize = 230483949;
-    var downloadCurrentRuns = 18;
+    var downloadCurrentRuns = 12;
     var downloadTestTimeout = 15000;
     var downloadTestLength = 15000;
     var downloadMovingAverage = 18;
@@ -53,6 +53,11 @@
         }
         startTestButton = document.querySelector(".action-start");
         addEvent(startTestButton, 'click', function () {
+            downloadSize = (document.getElementById('bytes').value) ? parseInt(document.getElementById('bytes').value) : 230483949;
+            downloadCurrentRuns = (document.getElementById('connections').value) ? parseInt(document.getElementById('connections').value) : 18;
+            // downloadSize = parseInt(document.getElementById('bytes').value);
+            // downloadCurrentRuns = parseInt(document.getElementById('connections').value);
+            console.log(downloadSize);
             startTest();
         });
         getTestPlan(function (testPlan) {
@@ -153,7 +158,6 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 var data = JSON.parse(xhr.responseText);
                 testPlan = data;
-                testPlan.baseUrlIPv4NoPort = '127.0.0.1';
                 testPlan.hasIPv6 = false;
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
@@ -161,7 +165,8 @@
                 void ((func && func instanceof Function) && func(data));
             }
         };
-      xhr.open('GET', '/testplan', true);
+        xhr.open('GET', '/testplan', true);
+        // xhr.open('GET', 'https://speedtestprod.mw.comcast.net/api/testplans', true);
         xhr.send(null);
     }
 
@@ -230,7 +235,9 @@
             updateValue([currentTest, '-', version].join(''), finalValue);
         }
 
-        function downloadHttpOnComplete(result) {
+        function downloadHttpOnComplete(result, finalValue) {
+            document.getElementById('finalspeed').value = finalValue.toFixed(2);
+            document.getElementById('downloadarray').value = result;
             var calculateMeanStats = new window.statisticalCalculator(result, false, sliceStartValue, sliceEndValue, calculateStatsonComplete);
             calculateMeanStats.getResults();
         }
@@ -312,9 +319,12 @@
         urls.length = 0;
 
         var baseUrl = (version === 'IPv6') ? testPlan.baseUrlIPv6NoPort : testPlan.baseUrlIPv4NoPort;
+        // var baseUrl = (version === 'IPv6') ? testPlan.baseUrlIPv6NoPort : 'qoerdc-ncst-06.sys.comcast.net:';
 
         for (var i = 0; i < ports.length; i++) {
             for (var b = 0; b < 6; b++) {
+                // urls.push('http://stosat-nwca-01.sys.comcast.net:8080/download?nocache=9a700daa-09bc-4ca2-bce0-610557a821f2&size='+downloadSize)
+                // urls.push('http://' + baseUrl + ports[i] + '/api/downloads?bufferSize=');
                 urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
             }
         }
