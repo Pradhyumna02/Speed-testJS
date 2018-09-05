@@ -155,6 +155,7 @@
                 testPlan = data;
                 //todo needs to be removed
                 testPlan.hasIPv6 = false;
+                testPlan.baseUrlIPv4NoPort = '69.252.86.202';
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
@@ -315,15 +316,44 @@
 
         for (var i = 0; i < ports.length; i++) {
             for (var b = 0; b < 6; b++) {
-                urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
-
+                // urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
+                urls.push('http://' + '69.252.86.198' + ':' + ports[i] + '/api/downloads?bufferSize=');
             }
         }
+        // this.url = "http://69.252.86.198:5020/api/downloads?bufferSize=2000000";
+        // var download = new window.download(24, urls);
+        // download.initiateTest();
 
-        var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(urls, 'GET', downloadCurrentRuns, downloadTestTimeout, downloadTestLength, downloadMovingAverage, downloadHttpOnComplete, downloadHttpOnProgress,
-            downloadHttpOnAbort, downloadHttpOnTimeout, downloadHttpOnError, downloadSize, downloadProgressInterval, monitorInterval);
+        function cb(speed) {
+            option.series[0].data[0].value = speed;
+            myChart.setOption(option, true);
+        }
 
-        downloadHttpConcurrentProgress.initiateTest();
+        var downloadProgress = new window.downloadProgress(20, urls, cb);
+        downloadProgress.initiateTest();
+
+        // var downloadProgress1 = new window.downloadProgress1(6);
+        // downloadProgress1.initiateTest();
+
+        // test();
+
+        // var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(urls, 'GET', downloadCurrentRuns, downloadTestTimeout, downloadTestLength, downloadMovingAverage, downloadHttpOnComplete, downloadHttpOnProgress,
+        //     downloadHttpOnAbort, downloadHttpOnTimeout, downloadHttpOnError, downloadSize, downloadProgressInterval, monitorInterval);
+
+        // downloadHttpConcurrentProgress.initiateTest();
+    }
+
+    function test() {
+
+        function onProgress(speed) {
+            console.log(speed)
+        }
+
+        for (var i = 0; i < 4; i++) {
+            var httpget = new window.httpget(onProgress);
+            httpget.start(i);
+        }
+
     }
 
 })();
