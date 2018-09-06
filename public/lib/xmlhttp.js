@@ -1,13 +1,14 @@
 (function() {
     'use strict';
 
-    function xmlhttp(callbackOnProgress, callbackOnLoad, url, downloadStartTime) {
+    function xmlhttp(callbackOnProgress, callbackOnLoad, url, downloadStartTime, downloadSize) {
         this.id = null;
         this.request = null;
         this.callbackOnProgress = callbackOnProgress;
         this.callbackOnLoad = callbackOnLoad;
         this.url = url;
         this.download_start_time = downloadStartTime;
+        this.download_size = downloadSize;
     }
 
     xmlhttp.prototype.initiateRequest = function() {
@@ -17,11 +18,12 @@
             this.request.onload = this.handleLoad.bind(this);
             this.request.onprogress = this.handleOnProgress.bind(this);
             this.request.onloadend = this.handleLoadEnd.bind(this);
+            // this.request.onreadystatechange = this.handleReadyStateChange.bind(this);
         }
     }
 
     xmlhttp.prototype.sendRequest = function() {
-        this.request.open("GET", this.url);
+        this.request.open("GET", this.url + this.download_size +  '&r=' + Math.random());
         // this.request.setRequestHeader('Range', bytes);  // TODO add bytes configurable
         this.request.send(null);
     }
@@ -39,6 +41,9 @@
 
     xmlhttp.prototype.handleLoad = function(event) {
         if (!event.lengthComputable) {
+            // this.download_size = this.download_size * 2;
+            
+            // this.sendRequest();
             // console.log(this.request.response.size);
             // console.log(event);
             // console.log(timer() - this.start_time);
@@ -55,8 +60,13 @@
             this.progressCount++;
             var cur_time = timer();
             var chunk_loaded = event.loaded - this.prev_load;
-            
             var chunk_loaded_time = cur_time - this.prev_time;
+            var total_time = cur_time - this.download_start_time;
+
+            // if (chunk_loaded_time < 50) {
+            //     return;
+            // }
+
             this.prev_load = event.loaded;
             this.prev_time = cur_time;
 
@@ -64,17 +74,13 @@
             //     return;
             // }
 
-            // if (event.loaded === 1000000) {
-            //     // this.url = "http://69.252.86.198:5020/api/downloads?bufferSize=5000000";
-            //     this.sendRequest();
-            // }
-
-            // console.log('chunk loaded ' +chunk_loaded);
+            // console.log('chunk loaded ' +chunk_loaded + ' time ' +chunk_loaded_time + ' Actual load ' +event.loaded);
             this.callbackOnProgress({
                 id: this.id,
                 loaded: event.loaded,
                 chunk_loaded: chunk_loaded,
-                chunk_loaded_time: chunk_loaded_time
+                chunk_loaded_time: chunk_loaded_time,
+                total_time: total_time
             });
         }
     }
@@ -84,8 +90,16 @@
         if ((timer() - this.download_start_time) > 15500) {
            return; 
         }
+        // this.download_size = 25000000;
         this.sendRequest();
+        console.log('********** Starting new Request ************')
     }
+
+    // xmlhttp.prototype.handleReadyStateChange = function() {
+    //     if (this.request.readyState === 3) {
+    //         this.sendRequest();
+    //     }
+    // }
 
     function timer() {
         return window.performance.now()
