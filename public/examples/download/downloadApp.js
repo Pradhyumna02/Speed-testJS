@@ -155,7 +155,7 @@
                 testPlan = data;
                 //todo needs to be removed
                 testPlan.hasIPv6 = false;
-                testPlan.baseUrlIPv4NoPort = '10.252.58.134:8080';
+                testPlan.baseUrlIPv4NoPort = '69.252.86.198';
                 if (testPlan.performLatencyRouting) {
                     latencyBasedRouting();
                 }
@@ -315,32 +315,32 @@
         var baseUrl = (version === 'IPv6') ? testPlan.baseUrlIPv6NoPort : testPlan.baseUrlIPv4NoPort;
 
         for (var i = 0; i < ports.length; i++) {
-            for (var b = 0; b < 6; b++) {
+            for (var b = 0; b < 4; b++) {
                 // urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
-                urls.push('http://' + '10.252.58.134' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                urls.push('http://' + '69.252.86.198' + ':' + ports[i] + '/api/downloads?bufferSize=');
             }
         }
         // this.url = "http://69.252.86.198:5020/api/downloads?bufferSize=2000000";
         // var download = new window.download(24, urls);
         // download.initiateTest();
 
-        // function cb(speed) {
-        //     option.series[0].data[0].value = speed;
-        //     myChart.setOption(option, true);
-        // }
-
-        // var downloadProgress = new window.downloadProgress(20, urls, cb);
-        // downloadProgress.initiateTest();
+        function cb(speed) {
+            option.series[0].data[0].value = speed;
+            myChart.setOption(option, true);
+        }
+console.log(urls);
+        var downloadProgress = new window.downloadProgress(20, urls, cb);
+        downloadProgress.initiateTest();
 
         // var downloadProgress1 = new window.downloadProgress1(6);
         // downloadProgress1.initiateTest();
 
         // test();
 
-        var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(urls, 'GET', downloadCurrentRuns, downloadTestTimeout, downloadTestLength, downloadMovingAverage, downloadHttpOnComplete, downloadHttpOnProgress,
-            downloadHttpOnAbort, downloadHttpOnTimeout, downloadHttpOnError, downloadSize, downloadProgressInterval, monitorInterval);
+        // var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(urls, 'GET', downloadCurrentRuns, downloadTestTimeout, downloadTestLength, downloadMovingAverage, downloadHttpOnComplete, downloadHttpOnProgress,
+        //     downloadHttpOnAbort, downloadHttpOnTimeout, downloadHttpOnError, downloadSize, downloadProgressInterval, monitorInterval);
 
-        downloadHttpConcurrentProgress.initiateTest();
+        // downloadHttpConcurrentProgress.initiateTest();
     }
 
     function test() {

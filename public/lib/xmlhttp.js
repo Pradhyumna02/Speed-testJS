@@ -87,12 +87,12 @@
 
     xmlhttp.prototype.handleLoadEnd = function() {
         // console.log((timer() - this.download_start_time));
-        if ((timer() - this.download_start_time) > 15500) {
+        if ((timer() - this.download_start_time) > 15000) {
            return; 
         }
-        // this.download_size = 25000000;
+        // // this.download_size = 25000000;
         this.sendRequest();
-        console.log('********** Starting new Request ************')
+        // console.log('********** Starting new Request ************')
     }
 
     // xmlhttp.prototype.handleReadyStateChange = function() {

@@ -1,13 +1,15 @@
 (function() {
 
     function downloadProgress(threads, urls, callback) {
-        this.threads = 6;
+        this.threads = 20;
         this.active_tests = [];
         this.total_time = 0;
         this.download_speed_array = [];
         this.urls = urls;
         this.size = 20000000;
         this.callback = callback;
+
+        this.results = [];
 
         // TODO need to delete
         this.alpha = 0.1;
@@ -16,14 +18,21 @@
         this.beta = this.getBeta();
 
         // this.multiplier = [1, 1.2, 1.3, 1.4, 1.5, 1.6]
+
+        // simple moving average values
+        this.sma_count = 0;
+        this.sma_mean = 0;
     }
     // http://atlanta.speed.googlefiber.net:3022/download?size=10000000
     downloadProgress.prototype.initiateTest = function() {
         this.total_bytes_downloaded = 0;
         this.prev_total_bytes = 0;
         this.prev_total_time = 0;
+        this.test_start_time = timer();
+        this.test_time = Date.now();
         this.start();
-        this.interval = setInterval(this.monitor.bind(this), 200);
+        // this.interval = setInterval(this.monitor.bind(this), 200);
+        this.sma_interval = setInterval(this.smaMonitor.bind(this), 100);
         // var self = this;
         // this.interval = setInterval(function () {
         //   self.monitor();
@@ -31,9 +40,9 @@
     }
 
     downloadProgress.prototype.start = function() {
-        this.test_start_time = timer();
-        // console.log("Test Start Time ************* " +this.test_start_time);
+        // console.log("Test Start Time ************* " +this.test_start_time * (1 + i/10));
         for (var i = 0; i < this.threads; i++) {
+            // this.size = this.size * (1 + i/10);
             var xmlhttp = new window.xmlhttp(this.onProgress.bind(this), this.onLoad.bind(this),
             this.urls[i], this.test_start_time, this.size);
             xmlhttp.start(i);
@@ -65,6 +74,9 @@
         // this.total_bytes_downloaded += event.loaded;
         // console.log('This total bytes download on load event: ' +this.total_bytes_downloaded + ' time ' +this.total_time);
         // this.abortAll();
+        // console.log("Reached here");
+        // this.threads = 1;
+        // this.start();
     }
 
     downloadProgress.prototype.showSpeed = function() {
@@ -123,12 +135,12 @@
     }
 
     downloadProgress.prototype.endTest = function() {
-        clearInterval(this.interval);
+        // clearInterval(this.interval);
         this.abortAll();
         if (this.download_speed_array && this.download_speed_array.length) {
             var arr = this.download_speed_array;
             //TODO needs to remove the above line not needed
-            this.download_speed_array = this.download_speed_array.slice(3, this.download_speed_array.length);
+            // this.download_speed_array = this.download_speed_array.slice(3, this.download_speed_array.length);
             console.log(this.download_speed_array);
             var sum = this.download_speed_array.reduce(function (a, b) {
                 return a + b;
@@ -157,10 +169,71 @@
         return window.performance.now();
     }
 
-    // simple moving average
+    // ***********************************************
+    // simple moving average *******************************************************************************
+
+    downloadProgress.prototype.smaMonitor = function() {
+        if ((timer() - this.test_start_time) > 15000) {
+            clearInterval(this.sma_interval);
+            this.endTest();
+            // this.abortAll();
+            return;
+        }
+        if (this.total_bytes_downloaded === 0) {
+            return;
+        }
+        this.results.push({
+            bytes : this.total_bytes_downloaded,
+            time : timer() - this.test_start_time
+        });
+        // console.log(this.results);
+        // debugger;
+        this.simpleMovingAverage();
+    }
+
+    downloadProgress.prototype.calculateChunkSpeed = function() {
+        var data_length = this.results.length;
+        var prev_data = this.results[data_length - 2];
+        var cur_data = this.results[data_length - 1];
+        var bytes = cur_data.bytes - prev_data.bytes;
+        var time = cur_data.time - prev_data.time;
+        return calSpeedInMbps(bytes, time);
+    }
 
     downloadProgress.prototype.simpleMovingAverage = function() {
+
+        var data_length = this.results.length;
+        if (data_length === 0) {
+            return 0;
+        }
+
+        if (data_length <= 25) {
+            this.callback(calSpeedInMbps(this.results[data_length - 1].bytes, this.results[data_length - 1].time));
+            return;
+        }
+
+        var newValue = this.calculateChunkSpeed();
+        // console.log('Chunk Speed ' +newValue);
+        if (newValue === 0) {
+            return;
+        }
+        this.download_speed_array.push(newValue);
+        this.sma_count++;
+        const differential = (newValue - this.sma_mean) / this.sma_count
+        const newMean = this.sma_mean + differential;
+        this.sma_mean = newMean;
+        // console.log('Mean: ' +this.sma_mean);
+        // this.bufferSize();
+        this.callback(this.sma_mean);
+    }
+
+    downloadProgress.prototype.chopOffAverage = function() {
         
+    }
+
+    downloadProgress.prototype.bufferSize = function() {
+        var size = (Date.now() - this.test_time)/6;
+        // console.log('Cal Buf Size ' +size);
     }
 
     // Relate to the moving average
