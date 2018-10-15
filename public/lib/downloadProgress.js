@@ -1,12 +1,12 @@
 (function() {
 
     function downloadProgress(threads, urls, callback) {
-        this.threads = 20;
+        this.threads = 6;
         this.active_tests = [];
         this.total_time = 0;
         this.download_speed_array = [];
         this.urls = urls;
-        this.size = 20000000;
+        this.size = 25000000;
         this.callback = callback;
 
         this.results = [];
@@ -22,7 +22,10 @@
         // simple moving average values
         this.sma_count = 0;
         this.sma_mean = 0;
+        this.prev_speed = 0
+        this.is_ramp_up = false;
     }
+    // speedtest.us-ny2.kamatera.com.prod.hosts.ooklaserver.net:8080/download?nocache=2926486b-a096-46eb-8e7b-95fe4a4b56ec&size=42428591
     // http://atlanta.speed.googlefiber.net:3022/download?size=10000000
     downloadProgress.prototype.initiateTest = function() {
         this.total_bytes_downloaded = 0;
@@ -193,42 +196,63 @@
 
     downloadProgress.prototype.calculateChunkSpeed = function() {
         var data_length = this.results.length;
+
+        if (data_length <= 2) {
+            return 0;
+        }
         var prev_data = this.results[data_length - 2];
         var cur_data = this.results[data_length - 1];
         var bytes = cur_data.bytes - prev_data.bytes;
         var time = cur_data.time - prev_data.time;
+// console.log((Math.round(cur_data.bytes/prev_data.bytes)));
+//         if (bytes !== 0 && (Math.round(bytes/prev_data) >= 2) && !this.is_ramp_up) {
+//             this.is_ramp_up = true;
+//         }
+
+        console.log('Bytes : ' +bytes);
         return calSpeedInMbps(bytes, time);
     }
 
     downloadProgress.prototype.simpleMovingAverage = function() {
 
-        var data_length = this.results.length;
-        if (data_length === 0) {
-            return 0;
-        }
-
-        if (data_length <= 25) {
-            this.callback(calSpeedInMbps(this.results[data_length - 1].bytes, this.results[data_length - 1].time));
+        this.cur_speed = this.calculateChunkSpeed();
+        console.log('New Speed Value: ' +this.cur_speed);
+        if (this.cur_speed === 0) {
             return;
         }
 
-        var newValue = this.calculateChunkSpeed();
-        // console.log('Chunk Speed ' +newValue);
-        if (newValue === 0) {
+        if (!this.is_ramp_up) {
+            this.checkRampUp();
             return;
         }
-        this.download_speed_array.push(newValue);
         this.sma_count++;
+        this.download_speed_array.push(this.cur_speed);
+        const differential = (this.cur_speed - this.sma_mean) / this.sma_count
+        const newMean = this.sma_mean + differential;
+        this.sma_mean = newMean;
+        console.log('Mean: ' +this.sma_mean);
+        // this.bufferSize();
+        this.callback(this.sma_mean);
+    }
+
+    downloadProgress.prototype.checkRampUp = function() {
+        var val = this.cur_speed/this.prev_speed;
+        if (!isNaN(val) && Math.round(val) <= 1) {
+            this.is_ramp_up = true;
+            // debugger;
+        }
+        this.prev_speed = this.cur_speed;
+    }
+
+    downloadProgress.prototype.chopOffAverage = function() {
+        this.sma_count++;
+        this.download_speed_array.push(newValue);
         const differential = (newValue - this.sma_mean) / this.sma_count
         const newMean = this.sma_mean + differential;
         this.sma_mean = newMean;
         // console.log('Mean: ' +this.sma_mean);
         // this.bufferSize();
         this.callback(this.sma_mean);
-    }
-
-    downloadProgress.prototype.chopOffAverage = function() {
-        
     }
 
     downloadProgress.prototype.bufferSize = function() {

@@ -41,6 +41,7 @@
     var downloadProgressInterval = 25;
     var urls = [];
     var ports = [5020, 5021, 5022, 5023, 5024, 5025];
+    // var ports = [3004, 3005, 3006, 3007, 3008, 3009]
     var monitorInterval = 1000;
     var sliceStartValue = 0.3;
     var sliceEndValue = 0.9;
@@ -316,8 +317,10 @@
 
         for (var i = 0; i < ports.length; i++) {
             for (var b = 0; b < 4; b++) {
-                // urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
-                urls.push('http://' + '69.252.86.198' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                // urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=69.241.67.138');
+                // urls.push('http://' + '69.252.86.202' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                // urls.push('http://' + 'atlanta.speed.googlefiber.net' + ':' +ports[i] + '/download?size=')
+                urls.push('http://' + '127.0.0.1' + ':' + 8080 + '/download');
             }
         }
         // this.url = "http://69.252.86.198:5020/api/downloads?bufferSize=2000000";

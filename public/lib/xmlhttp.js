@@ -23,7 +23,8 @@
     }
 
     xmlhttp.prototype.sendRequest = function() {
-        this.request.open("GET", this.url + this.download_size +  '&r=' + Math.random());
+        // this.request.open("GET", this.url + this.download_size +  '&r=' + Math.random());
+        this.request.open("GET", this.url);
         // this.request.setRequestHeader('Range', bytes);  // TODO add bytes configurable
         this.request.send(null);
     }
@@ -92,7 +93,7 @@
         }
         // // this.download_size = 25000000;
         this.sendRequest();
-        // console.log('********** Starting new Request ************')
+        console.log('********** Starting new Request ************')
     }
 
     // xmlhttp.prototype.handleReadyStateChange = function() {
