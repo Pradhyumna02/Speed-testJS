@@ -55,7 +55,7 @@
         this.clientCallbackTimeout = callbackTimeout;
         this.clientCallbackError = callbackError;
         //start time of test suite
-        this._beginTime = Date.now();
+        this._beginTime = timer();
         //boolean on whether test  suite is running or not
         this._running = true;
         //array holding  results
@@ -80,7 +80,7 @@
      */
     downloadHttpConcurrentProgress.prototype.onTestError = function (result) {
       if (this._running) {
-         if ((Date.now() - this._beginTime) > this.testLength) {
+         if ((timer() - this._beginTime) > this.testLength) {
            this.endTest();
           }
           else{
@@ -105,7 +105,7 @@
      */
     downloadHttpConcurrentProgress.prototype.onTestTimeout = function () {
         if(this._running) {
-            if ((Date.now() - this._beginTime) > this.testLength) {
+            if ((timer() - this._beginTime) > this.testLength) {
                 this.endTest();
             }
 
@@ -141,7 +141,7 @@
             return;
         }
         //check for end of test
-        if ((Date.now() - this._beginTime) > this.testLength) {
+        if ((timer() - this._beginTime) > this.testLength) {
             this.endTest();
         }
         this.totalBytes = this.totalBytes + result.loaded;
@@ -160,7 +160,7 @@
             for (var g = 1; g <= this.concurrentRuns; g++) {
                 this._testIndex++;
                 var request = new window.xmlHttpRequest('GET', this.urls[g]+ this.size +  '&r=' + Math.random(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
-                    this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this),this.progressIntervalDownload);
+                    this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this),this.progressIntervalDownload, this.isHandheld);
                 this._activeTests.push({
                     xhr: request,
                     testRun: this._testIndex
@@ -204,7 +204,7 @@
 
         if (this.results.length > 0) {
             for (var i = 0; i < this.results.length; i++) {
-                if (this.results[i].timeStamp > (Date.now() - this.monitorInterval)) {
+                if (this.results[i].timeStamp > (timer() - this.monitorInterval)) {
                     intervalBandwidth = intervalBandwidth + parseFloat(this.results[i].bandwidth);
                     totalLoaded = totalLoaded + this.results[i].chunckLoaded;
                     totalTime = totalTime + this.results[i].totalTime;
@@ -235,7 +235,7 @@
 
         }
         //check for end of test
-        if ((Date.now() - this._beginTime) > this.testLength) {
+        if ((timer() - this._beginTime) > this.testLength) {
           this.endTest();
         }
 
@@ -252,7 +252,7 @@
            this.clientCallbackError('no measurements obtained');
        }
        this.abortAll();
-     };
+     }; 
 
     /**
      * reset test variables

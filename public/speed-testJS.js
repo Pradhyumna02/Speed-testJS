@@ -33,12 +33,12 @@
   var option;
   var startTestButton;
   var firstRun = true;
-  var downloadSize = 230483949;
+  var downloadSize = 200000000;
   var testServerTimeout = 2000;
   var latencyTimeout = 3000;
   var downloadCurrentRuns = 18;
-  var downloadTestTimeout = 12000;
-  var downloadTestLength = 12000;
+  var downloadTestTimeout = 15000;
+  var downloadTestLength = 15000;
   var downloadMovingAverage = 18;
   var downloadProgressInterval = 25;
   var downloadUrls = [];
@@ -54,6 +54,7 @@
   var isMicrosoftBrowser = false;
   var sliceStartValue = 0.3;
   var sliceEndValue = 0.9;
+  var downloadDesktopTestInterval = 1000;
 
   function initTest() {
     function addEvent(el, ev, fn) {
@@ -167,6 +168,8 @@
         var data = JSON.parse(xhr.responseText);
         testPlan = data;
         testPlan.hasIPv6 = false;
+        testPlan.baseUrlIPv4 = '69.252.86.194';
+        testPlan.baseUrlIPv4NoPort = '69.252.86.194';
         if (testPlan.performLatencyRouting) {
           latencyBasedRouting();
         }
@@ -466,8 +469,8 @@
     for (var i = 0; i < ports.length; i++) {
       for(var b= 0; b <6; b++ )
       {
-        downloadUrls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
-
+        // downloadUrls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
+        downloadUrls.push('http://' + baseUrl + ':' + ports[i] + '/api/downloads?bufferSize=');
       }
     }
 
@@ -477,6 +480,9 @@
         downloadSize = 20000000;
         downloadTestTimeout = 10000;
         downloadTestLength = 10000;
+    } else {
+      performDesktopDownloadTest(version);
+      return;
     }
 
     var downloadHttpConcurrentProgress = new window.downloadHttpConcurrentProgress(downloadUrls, 'GET', downloadCurrentRuns, downloadTestTimeout, downloadTestLength, downloadMovingAverage, downloadHttpOnComplete, downloadHttpOnProgress,
@@ -484,6 +490,33 @@
 
     downloadHttpConcurrentProgress.initiateTest();
   }
+
+  function performDesktopDownloadTest(version) {
+
+    function downloadHttpOnProgress(event) {
+      console.log(event);
+    }
+
+    function downloadHttpOnComplete(event) {
+      console.log(event);
+      setTimeout(function() { uploadTest(version); }, 500); 
+    }
+
+    function downloadHttpOnError(event) {
+      console.log(event);
+    }
+
+    function downloadHttpOnAbort(event) {
+      console.log(event);
+    }
+
+    var downloadDesktopTest = new window.desktopTest(downloadUrls, downloadSize, downloadCurrentRuns, 
+            downloadTestLength, downloadDesktopTestInterval, downloadHttpOnProgress, 
+            downloadHttpOnComplete, downloadHttpOnError, downloadHttpOnAbort);
+
+    downloadDesktopTest.initiateTest();
+
+}
 
   function uploadTest(version) {
     var currentTest = 'upload';
@@ -549,7 +582,8 @@
       uploadUrls.length = 0;
       for (var i = 0; i < ports.length; i++) {
           for (var b = 0; b < 6; b++) {
-              uploadUrls.push('http://' + baseUrl + ':' + ports[i] + '/upload');
+              // uploadUrls.push('http://' + baseUrl + ':' + ports[i] + '/upload');
+              uploadUrls.push('http://' + baseUrl + ':' + ports[i] + '/api/uploads');
           }
       }
 
