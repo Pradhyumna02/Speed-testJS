@@ -1,12 +1,12 @@
 (function() {
 
     function downloadProgress(threads, urls, callback) {
-        this.threads = 6;
+        this.threads = 20;
         this.active_tests = [];
         this.total_time = 0;
         this.download_speed_array = [];
         this.urls = urls;
-        this.size = 25000000;
+        this.size = 20000000;
         this.callback = callback;
 
         this.results = [];
@@ -35,7 +35,7 @@
         this.test_time = Date.now();
         this.start();
         // this.interval = setInterval(this.monitor.bind(this), 200);
-        this.sma_interval = setInterval(this.smaMonitor.bind(this), 100);
+        this.sma_interval = setInterval(this.smaMonitor.bind(this), 200);
         // var self = this;
         // this.interval = setInterval(function () {
         //   self.monitor();
@@ -189,8 +189,7 @@
             bytes : this.total_bytes_downloaded,
             time : timer() - this.test_start_time
         });
-        // console.log(this.results);
-        // debugger;
+
         this.simpleMovingAverage();
     }
 
@@ -204,10 +203,6 @@
         var cur_data = this.results[data_length - 1];
         var bytes = cur_data.bytes - prev_data.bytes;
         var time = cur_data.time - prev_data.time;
-// console.log((Math.round(cur_data.bytes/prev_data.bytes)));
-//         if (bytes !== 0 && (Math.round(bytes/prev_data) >= 2) && !this.is_ramp_up) {
-//             this.is_ramp_up = true;
-//         }
 
         console.log('Bytes : ' +bytes);
         return calSpeedInMbps(bytes, time);
@@ -250,7 +245,7 @@
         const differential = (newValue - this.sma_mean) / this.sma_count
         const newMean = this.sma_mean + differential;
         this.sma_mean = newMean;
-        // console.log('Mean: ' +this.sma_mean);
+        console.log('Mean: ' +this.sma_mean);
         // this.bufferSize();
         this.callback(this.sma_mean);
     }

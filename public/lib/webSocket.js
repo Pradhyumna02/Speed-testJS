@@ -45,6 +45,8 @@
                 this._request.onmessage = this._handleOnMessage.bind(this);
                 this._request.onclose = this._handleOnClose.bind(this);
                 this._request.onerror = this._handleOnError.bind(this);
+                this._request.onping = this._handleOnPing.bind(this);
+                this._request.onpong = this._handleOnPong.bind(this);
             } catch (err) {
                 this.callbackOnError('connection error');
             }
@@ -56,14 +58,19 @@
      * webSocket onOpen Event
      */
     webSocket.prototype._handleOnOpen = function () {
-        var obj = {'data': Date.now().toString(), 'flag': 'latency'};
-        this._request.send(JSON.stringify(obj), {mask: true});
+        console.log("websocket connection opened");
+        // this._reques t.ping(Date.now());
+        // var obj = {'data': Date.now().toString(), 'flag': 'latency'};
+        this.startTime = window.performance.now();
+        // this._request.send("HI");
+        this._request.send("PING");
     };
 
     /**
      * send message for current webSocket
      */
     webSocket.prototype.sendMessage = function () {
+        this.startTime = window.performance.now();
         var obj = {'data': Date.now().toString(), 'flag': 'latency'};
         this._request.send(JSON.stringify(obj), {mask: true});
     };
@@ -72,7 +79,14 @@
      * webSocket onMessage received Event
      */
     webSocket.prototype._handleOnMessage = function (event) {
+        console.log(event);
         var finaltime = Date.now() - parseInt(event.data);
+        var time = window.performance.now() - this.startTime;
+        console.log("My TIme " +time);
+        this.startTime = window.performance.now();
+        var val = "PING" + " " + Date.now().toString(); 
+        this._request.send(val);
+        // console.log("Time " +finaltime);
         var result = {};
         result.time = finaltime;
         result.unit = 'ms';
@@ -106,6 +120,14 @@
 
         }
     };
+
+    webSocket.prototype._handleOnPing = function(event) {
+        console.log(event);
+    }
+
+    webSocket.prototype._handleOnPong = function(event) {
+        console.log(event);
+    }
 
 
     window.webSocket = webSocket;

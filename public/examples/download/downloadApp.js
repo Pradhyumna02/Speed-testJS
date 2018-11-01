@@ -318,14 +318,18 @@
         for (var i = 0; i < ports.length; i++) {
             for (var b = 0; b < 4; b++) {
                 // urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=69.241.67.138');
-                // urls.push('http://' + '69.252.86.202' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                // urls.push('http://' + '69.252.86.194' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                urls.push('http://' + '69.241.67.138' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                // 69.241.67.138
                 // urls.push('http://' + 'atlanta.speed.googlefiber.net' + ':' +ports[i] + '/download?size=')
-                urls.push('http://' + '127.0.0.1' + ':' + 8080 + '/download');
+                // urls.push('http://' + '127.0.0.1' + ':' + 8080 + '/download');
             }
         }
         // this.url = "http://69.252.86.198:5020/api/downloads?bufferSize=2000000";
         // var download = new window.download(24, urls);
         // download.initiateTest();
+
+        // latencyTest(version);
 
         function cb(speed) {
             option.series[0].data[0].value = speed;
@@ -374,6 +378,33 @@ console.log(urls);
         console.log('Size : ' +downloadSize);
     } else { 
         console.log('NOt MoBile'); 
+    }
+
+    function latencyTest(version) {
+        function latencyHttpOnComplete(event) {
+            console.log(event);
+        }
+
+        function latencyHttpOnProgress(event) {
+            console.log(event);
+        }
+
+        function latencyHttpOnAbort(event) {
+            console.log(event);
+        }
+
+        function latencyHttpOnTimeout(event) {
+            console.log(event);
+        }
+
+        function latencyHttpOnError(event) {
+            console.log(event);
+        }
+        var baseUrl = (version === 'IPv6') ? 'http://' + testPlan.baseUrlIPv6 + '/latency' : 'http://' + testPlan.baseUrlIPv4 + '/latency';
+        
+            var latencyHttpTestSuite = new window.latencyHttpTest(baseUrl, 10, 3000, latencyHttpOnComplete, latencyHttpOnProgress,
+              latencyHttpOnAbort, latencyHttpOnTimeout, latencyHttpOnError);
+            latencyHttpTestSuite.initiateTest();
     }
 
 })();

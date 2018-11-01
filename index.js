@@ -34,7 +34,7 @@ domain.setIpAddresses();
 
 //variables
 global.webPort = +process.env.WEB_PORT || 80;
-global.webSocketPort = global.webPort + 1;
+global.webSocketPort = 5003;
 
 //export modules
 module.exports.statisticalCalculator = require('./modules/statisticalCalculator');
@@ -103,7 +103,8 @@ wss.on('connection', function connection(ws) {
     console.log('client connected');
 
     ws.on('message', function incoming(messageObj) {
-        var message = JSON.parse(messageObj);
+        console.log(messageObj);
+        // var message = JSON.parse(messageObj);
         /*
          if (message.flag === 'download'){
          var img = images[message.data];
@@ -129,5 +130,10 @@ wss.on('connection', function connection(ws) {
             console.log("error message");
         }
 
+    });
+
+    ws.on('PING', function() {
+        var message = "PONG" + " " + Date.now().toString();
+        ws.send(message);
     });
 });

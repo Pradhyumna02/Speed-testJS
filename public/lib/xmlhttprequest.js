@@ -106,6 +106,7 @@
   * Mark the start time of the request
   */
     xmlHttpRequest.prototype._handleLoadstart = function() {
+      this.latStartTime = window.performance.now();
       this.startTime = Date.now();
       this.prevTime = Date.now();
     };
@@ -174,6 +175,8 @@
     if(this._request.readyState === 4 && this._request.status === 200) {
       clearTimeout(this.requestTimeout);
               var result = {};
+              var lat_time = window.performance.now() - this.latStartTime;
+              console.log("time " +lat_time);
               result.totalTime = Date.now() - this.startTime;
               result.id = this.id;
               if(this.method==='POST'){

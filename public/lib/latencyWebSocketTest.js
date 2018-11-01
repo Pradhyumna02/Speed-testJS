@@ -69,7 +69,12 @@
     this.clientCallbackProgress(result);
     if (this._testIndex < this.iterations) {
       this._testIndex++;
-      this._test.sendMessage();
+      var self = this;
+      setTimeout(function() {
+        self._test.sendMessage();
+      },1000);
+      // setTimeout(this._test.sendMessage.bind(this), 1000);
+      // this._test.sendMessage();
     }
     else {
       this._running = false;

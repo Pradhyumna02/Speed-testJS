@@ -144,6 +144,8 @@
       if (xhr.readyState == XMLHttpRequest.DONE) {
         var data = JSON.parse(xhr.responseText);
         testPlan = data;
+        testPlan.hasIPv6 = false;
+        testPlan.baseUrlIPv4 = '69.252.86.194';
         if (testPlan.performLatencyRouting) {
           latencyBasedRouting();
         }
@@ -362,11 +364,16 @@
       }
     }
 
-    var baseUrl = (version === 'IPv6') ? 'http://' + testPlan.baseUrlIPv6 + '/latency' : 'http://' + testPlan.baseUrlIPv4 + '/latency';
+    var webSocketUrl = 'ws://' + 'qoecnf-seca-01.sys.comcast.net' + ':5003/ws'
+    webSocketUrl = 'ws://stosat-plfi-01.sys.comcast.net.prod.hosts.ooklaserver.net:8080/ws'
+    webSocketUrl = 'ws://' + '127.0.0.1' + ':5003/ws'
+    performLatencyTestWebSocket(webSocketUrl)
 
-    var latencyHttpTestSuite = new window.latencyHttpTest(baseUrl, 20, 3000, latencyHttpOnComplete, latencyHttpOnProgress,
-      latencyHttpOnAbort, latencyHttpOnTimeout, latencyHttpOnError);
-    latencyHttpTestSuite.initiateTest();
+    // var baseUrl = (version === 'IPv6') ? 'http://' + testPlan.baseUrlIPv6 + '/latency' : 'http://' + testPlan.baseUrlIPv4 + '/latency';
+
+    // var latencyHttpTestSuite = new window.latencyHttpTest(baseUrl, 20, 3000, latencyHttpOnComplete, latencyHttpOnProgress,
+    //   latencyHttpOnAbort, latencyHttpOnTimeout, latencyHttpOnError);
+    // latencyHttpTestSuite.initiateTest();
   }
 
   function updateValue(selector, value) {
@@ -377,5 +384,31 @@
       dom.innerHTML = value;
     }
   }
+
+  function performLatencyTestWebSocket(url, version, num) {
+    
+            function latencyWebSocketOnComplete(result) {
+              console.log(JSON.stringify(result));
+              // displayLatencyResult(result, version, deferred);
+            }
+    
+            function latencyWebSocketOnProgress(result) { // jshint ignore:line
+              //process results to see the on progress events
+            }
+    
+            function latencyWebSocketOnError(error) { // jshint ignore:line
+              console.log(error);
+              // webSocketIsSupported = false;
+              // var url = 'http://' + testplan['baseUrl' + version] + '/latency';
+              // performLatencyTest(url, version, num, deferred);
+    
+            }
+    
+            var latencyWebSocketTestSuite = new window.latencyWebSocketTest(url, 'GET', '0', 10, 3000, latencyWebSocketOnComplete, latencyWebSocketOnProgress,
+              latencyWebSocketOnError);
+            latencyWebSocketTestSuite.initiateTest();
+
+          }
+
 
 })();

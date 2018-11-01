@@ -107,11 +107,12 @@
     if(!this._running){
       return;
     }
+    console.log("latency result " +JSON.stringify(result));
     this._results.push(result);
     this._activeTests.pop(result.id,1);
     this.clientCallbackProgress(result);
     if (this._testIndex !== this.iterations) {
-      this.start();
+      setTimeout(this.start.bind(this), 1000);
     }
     else {
       this._running = false;
