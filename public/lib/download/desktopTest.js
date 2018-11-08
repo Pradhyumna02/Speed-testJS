@@ -27,7 +27,6 @@
         // TODO items to be removed
         this.sma_count = 0;
         this.sma_mean = 0;
-        this.intervalBytesTransferred = [];
         // Remove above items
         
         this.startTime = timer();
@@ -126,32 +125,11 @@
             clearInterval(this.intervalId);
         }
 
-        this.abortAll();
+        abortAllRequests.call(this);
         this.callbackComplete({
             value: this.sma_mean,
             arr: this.downloadResults
         });
-    }
-
-    desktopTest.prototype.abortAll = function() {
-        for (var i = 0; i < this.activeTests.length; i++) {
-            if (typeof(this.activeTests[i] !== 'undefined')) {
-                this.activeTests[i].xhr._request.abort();
-            }
-        }
-    }
-
-    function calcMovingAverage() {
-        this.sma_count++;
-        const differential = (this.cummulativeSpeed - this.sma_mean) / this.sma_count
-        const newMean = this.sma_mean + differential;
-        this.sma_mean = newMean;
-        console.log('***** Mean *****: ' +this.sma_mean);
-        return this.sma_mean;
-    }
-
-    function calculateSpeedMbps(bytes, milliSeconds) {
-        return bytes / (125 * milliSeconds);
     }
 
     window.desktopTest = desktopTest;

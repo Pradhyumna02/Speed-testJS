@@ -208,7 +208,7 @@
     function performDownloadTest() {
 
         function downloadHttpOnProgress(event) {
-            console.log(event);
+            console.log('***** Mean *****: ' +event);
         }
 
         function downloadHttpOnComplete(event) {
@@ -347,8 +347,8 @@
         for (var i = 0; i < ports.length; i++) {
             for (var b = 0; b < 6; b++) {
                 // urls.push('http://' + baseUrl + ':' + ports[i] + '/download?bufferSize=');
-                // urls.push('http://' + '69.241.67.134' + ':' + ports[i] + '/api/downloads?bufferSize=');
-                urls.push('http://' + '69.252.86.194' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                urls.push('http://' + '69.241.67.134' + ':' + ports[i] + '/api/downloads?bufferSize=');
+                // urls.push('http://' + '69.252.86.194' + ':' + ports[i] + '/api/downloads?bufferSize=');
             }
         }
 
