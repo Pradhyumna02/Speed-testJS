@@ -25,12 +25,13 @@
         this.timedOutReqCount = 0;
 
         // TODO items to be removed
-        this.sma_count = 0;
-        this.sma_mean = 0;
+        this.smaCount = 0;
+        this.smaMean = 0;
         // Remove above items
         
         this.startTime = timer();
         this.start();
+        testWebSocket();
         this.intervalId = setInterval(this.monitor.bind(this), this.intervalTimer);
     }
 
@@ -92,7 +93,7 @@
     }
 
     desktopTest.prototype.calcIntervalSpeed = function() {
-        this.cummulativeSpeed = 0
+        this.curSpeed = 0
         for (var j = 0; j < this.threads; j++) {
             var bytesTransferred = this.totalBytesTransferred[j] - this.prevBytesTransferred[j];
             var time = this.totalTime[j] - this.prevTime[j];
@@ -100,23 +101,23 @@
             if (bytesTransferred !== 0 || time !== 0) {
                 // console.log("Id" + j + " Bytes " +bytesTransferred + " time " +time);
                 var speed = calculateSpeedMbps(bytesTransferred, time);
-                this.cummulativeSpeed += speed;
+                this.curSpeed += speed;
                 this.prevBytesTransferred[j] = this.totalBytesTransferred[j];
                 this.prevTime[j] = this.totalTime[j];
             }
 
         }
-        this.downloadResults.push(+this.cummulativeSpeed.toFixed(2));
+        this.downloadResults.push(+this.curSpeed.toFixed(2));
         this.reportIntervalSpeed();
         // console.log("Total Speed " +totalSpeed);
     }
 
     desktopTest.prototype.reportIntervalSpeed = function() {
         if (this.downloadResults.length < 4) {
-            this.callbackProgress(this.cummulativeSpeed);
+            this.callbackProgress(this.curSpeed);
             return;
         }
-        this.callbackProgress(calcMovingAverage.call(this));
+        this.callbackProgress(simpleMovingAverage.call(this));
     }
 
     desktopTest.prototype.stopTest = function() {
@@ -127,7 +128,7 @@
 
         abortAllRequests.call(this);
         this.callbackComplete({
-            value: this.sma_mean,
+            value: this.smaMean,
             arr: this.downloadResults
         });
     }

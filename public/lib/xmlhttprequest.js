@@ -72,6 +72,9 @@
        if(this.method==='GET') {
           this._request.onprogress = (this.handHeld) ? 
             this._handleOnProgressDownload.bind(this) : this._handleOnProgressDownloadDesktop.bind(this);
+          // if (!this.handHeld) {
+          //   this._request.onloadend = this.handleLoadEnd.bind(this);
+          // }
         }
         else{
           this._request.upload.onprogress = this._handleOnProgressUpload.bind(this);
@@ -112,6 +115,7 @@
     xmlHttpRequest.prototype._handleLoadstart = function() {
       this.startTime = timer();
       this.prevTime = timer();
+      this.prevLoad = 0;
     };
   /**
   * Handle eror event
@@ -213,6 +217,7 @@
       result.id = this.id;
       if(isFinite(result.bandwidth)) {
           if (this.method === 'GET') {
+              this.sendRequest();
               this.callbackComplete(result);
           }
       }
@@ -294,6 +299,22 @@
 
 
    };
+
+   xmlHttpRequest.prototype.sendRequest = function() {
+    // this._request.open("GET", this.url + this.download_size +  '&r=' + Math.random());
+    this._request.open("GET", this.url);
+    // this.request.setRequestHeader('Range', bytes);  // TODO add bytes configurable
+    this._request.send(null);
+  }
+
+  // xmlHttpRequest.prototype.handleLoadEnd = function() {
+  //   this._request.timeout = this.timeout - (timer() - this.startTime);
+  //   console.log("time " +this._request.timeout);
+  //   if (this._request.timeout < 500) {
+  //     return;
+  //   }
+  //   this.sendRequest();
+  // }
 
 window.xmlHttpRequest = xmlHttpRequest;
 

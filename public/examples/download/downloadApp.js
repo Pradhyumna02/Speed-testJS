@@ -44,6 +44,7 @@
     var monitorInterval = 1000;
     var sliceStartValue = 0.3;
     var sliceEndValue = 0.9;
+    var isAlgorithm = false;
 
     function initTest() {
         function addEvent(el, ev, fn) {
@@ -222,8 +223,16 @@
         function downloadHttpOnAbort(event) {
             console.log(event);
         }
+// testWebSocket();
+        var testSuite = window.desktopTest;
+        if (isAlgorithm) {
+            testSuite = window.smallFileSize
+            downloadSize = 20000000;
+            downloadCurrentRuns = 20;
+            monitorInterval = 200;
+        }
 
-        var downloadDesktopTest = new window.desktopTest(urls, downloadSize, downloadCurrentRuns, 
+        var downloadDesktopTest = new testSuite(urls, downloadSize, downloadCurrentRuns, 
                 downloadTestLength, monitorInterval, downloadHttpOnProgress, downloadHttpOnComplete,
                 downloadHttpOnError, downloadHttpOnAbort);
 
