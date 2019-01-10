@@ -31,7 +31,7 @@
         
         this.startTime = timer();
         this.start();
-        testWebSocket();
+        // testWebSocket();
         this.intervalId = setInterval(this.monitor.bind(this), this.intervalTimer);
     }
 
@@ -48,7 +48,7 @@
             var request = new window.xmlHttpRequest('GET', this.urls[i]+ this.size +  '&r=' + Math.random(), 
             this.duration, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
             this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this),
-            null, false);
+            null);
             request.start(0, i);
             this.activeTests.push({
                 xhr: request,
@@ -56,7 +56,7 @@
         }
     }
 
-    desktopTest.prototype.onTestComplete = function() {
+    desktopTest.prototype.onTestComplete = function(event) {
         // TODO Needs to figure out what we need to do once the request is completed
         // Probably start another request 
         // Or end the test
@@ -99,7 +99,6 @@
             var time = this.totalTime[j] - this.prevTime[j];
 
             if (bytesTransferred !== 0 || time !== 0) {
-                // console.log("Id" + j + " Bytes " +bytesTransferred + " time " +time);
                 var speed = calculateSpeedMbps(bytesTransferred, time);
                 this.curSpeed += speed;
                 this.prevBytesTransferred[j] = this.totalBytesTransferred[j];

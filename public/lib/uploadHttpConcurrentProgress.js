@@ -180,7 +180,7 @@
       for (var p = 1; p <= number; p++) {
         this._testIndex++;
         request = new window.xmlHttpRequest('POST', this.urls[0] + '?r=' + performance.now(), this.timeout, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
-          this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this));
+          this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this), true);
         this._activeTests.push({
           xhr: request,
           testRun: this._testIndex

@@ -54,7 +54,8 @@
   var isMicrosoftBrowser = false;
   var sliceStartValue = 0.3;
   var sliceEndValue = 0.9;
-  var downloadDesktopTestInterval = 1000;
+  var monitorInterval = 1000;
+  var isAlgorithm = false;
 
   function initTest() {
     function addEvent(el, ev, fn) {
@@ -168,8 +169,8 @@
         var data = JSON.parse(xhr.responseText);
         testPlan = data;
         testPlan.hasIPv6 = false;
-        testPlan.baseUrlIPv4 = '69.252.86.194';
-        testPlan.baseUrlIPv4NoPort = '69.252.86.194';
+        testPlan.baseUrlIPv4 = 'qoerdc-ncst-03.sys.comcast.net';
+        testPlan.baseUrlIPv4NoPort = 'qoerdc-ncst-03.sys.comcast.net';
         if (testPlan.performLatencyRouting) {
           latencyBasedRouting();
         }
@@ -243,7 +244,7 @@
         setTimeout(latencyTest('IPv4'),500);
       }
       else{
-        updateValue(currentTest, result[0].time + ' ms');
+        updateValue(currentTest, result[0].time.toFixed(2) + ' ms');
       }
 
     }
@@ -492,13 +493,16 @@
   }
 
   function performDesktopDownloadTest(version) {
+    var currentTest = 'download';
 
     function downloadHttpOnProgress(event) {
-      console.log(event);
+      option.series[0].data[0].value = event;
+      myChart.setOption(option, true);
     }
 
     function downloadHttpOnComplete(event) {
       console.log(event);
+      updateValue([currentTest, '-', version].join(''), event.value.toFixed(2));
       setTimeout(function() { uploadTest(version); }, 500); 
     }
 
@@ -510,11 +514,19 @@
       console.log(event);
     }
 
-    var downloadDesktopTest = new window.desktopTest(downloadUrls, downloadSize, downloadCurrentRuns, 
-            downloadTestLength, downloadDesktopTestInterval, downloadHttpOnProgress, 
-            downloadHttpOnComplete, downloadHttpOnError, downloadHttpOnAbort);
+    var testSuite = window.desktopTest;
+    if (isAlgorithm) {
+        testSuite = window.smallFileSize;
+        downloadSize = 20000000;
+        downloadCurrentRuns = 20;
+        monitorInterval = 200;
+    }
 
-    downloadDesktopTest.initiateTest();
+    var downloadTest = new testSuite(downloadUrls, downloadSize, downloadCurrentRuns, 
+            downloadTestLength, monitorInterval, downloadHttpOnProgress, downloadHttpOnComplete,
+            downloadHttpOnError, downloadHttpOnAbort);       
+
+    downloadTest.initiateTest();
 
 }
 

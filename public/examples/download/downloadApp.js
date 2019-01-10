@@ -44,7 +44,7 @@
     var monitorInterval = 1000;
     var sliceStartValue = 0.3;
     var sliceEndValue = 0.9;
-    var isAlgorithm = false;
+    var isAlgorithm = true;
 
     function initTest() {
         function addEvent(el, ev, fn) {
@@ -213,6 +213,7 @@
         }
 
         function downloadHttpOnComplete(event) {
+            console.log("IM HERE");
             console.log(event);
         }
 
@@ -223,7 +224,7 @@
         function downloadHttpOnAbort(event) {
             console.log(event);
         }
-// testWebSocket();
+
         var testSuite = window.desktopTest;
         if (isAlgorithm) {
             testSuite = window.smallFileSize

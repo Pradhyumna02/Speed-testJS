@@ -47,7 +47,7 @@
   latencyHttpTest.prototype.start = function () {
     var cachebuster = Math.random();
     this._test = new window.xmlHttpRequest('GET', [this.url, '?', cachebuster].join(''), this.timeout, this.onTestComplete.bind(this),this.onTestProgress.bind(this),
-        this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this));
+        this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this), null, true);
     this._testIndex++;
     this._test.start(0, this._testIndex);
     this._activeTests.push({

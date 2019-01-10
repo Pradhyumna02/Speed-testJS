@@ -40,7 +40,7 @@
             var request = new window.xmlHttpRequest('GET', this.urls[i]+ this.size +  '&r=' + Math.random(), 
             this.duration, this.onTestComplete.bind(this), this.onTestProgress.bind(this),
             this.onTestAbort.bind(this), this.onTestTimeout.bind(this), this.onTestError.bind(this),
-            null, false);
+            null);
             request.start(0, i);
             this.activeTests.push({
                 xhr: request,
@@ -58,7 +58,7 @@
         this.totalBytesTransferred += event.chunckLoaded;
     }
 
-    smallFileSize.prototype.onTestAbort = function() {
+    smallFileSize.prototype.onTestAbort = function(event) {
         console.log("Request Aborted");
     }
 
@@ -104,7 +104,7 @@
             this.callbackProgress(this.curSpeed);
             return;
         }
-        console.log("cur speed " +this.curSpeed);
+        // console.log("cur speed " +this.curSpeed);
         var val = simpleMovingAverage.call(this);
         this.callbackProgress(val);
 
@@ -134,14 +134,6 @@
         this.prevSpeed = this.curSpeed;
     }
 
-    // smallFileSize.prototype.reportIntervalSpeed = function() {
-    //     if (this.downloadResults.length < 4) {
-    //         this.callbackProgress(this.curSpeed);
-    //         return;
-    //     }
-    //     this.callbackProgress(calcMovingAverage.call(this));
-    // }
-
     smallFileSize.prototype.stopTest = function() {
 
         if (this.intervalId) {
@@ -150,7 +142,7 @@
 
         abortAllRequests.call(this);
         this.callbackComplete({
-            value: this.sma_mean,
+            value: this.smaMean,
             arr: this.downloadResults
         });
     }

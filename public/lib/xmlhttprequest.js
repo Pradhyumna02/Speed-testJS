@@ -27,7 +27,7 @@
   * @param function callback for onprogress function
   */
   function xmlHttpRequest(method, url, timeout, callbackComplete, callbackProgress,callbackAbort,
-  callbackTimeout,callbackError, progressIntervalDownload, isHandHeld){
+  callbackTimeout,callbackError, progressIntervalDownload, enableEvents){
     this.method = method;
     this.url = url;
     this.timeout = timeout;
@@ -50,7 +50,7 @@
     this.callbackError = callbackError;
     this.requestTimeout = null;
     this._request = null;
-    this.handHeld = isHandHeld;
+    this.enableEvents = enableEvents;
   }
 
   /**
@@ -70,11 +70,8 @@
        this._request.onerror = this._handleError.bind(this);
        this._request.onreadystatechange = this._handleOnReadyStateChange.bind(this);
        if(this.method==='GET') {
-          this._request.onprogress = (this.handHeld) ? 
+          this._request.onprogress = (this.enableEvents) ? 
             this._handleOnProgressDownload.bind(this) : this._handleOnProgressDownloadDesktop.bind(this);
-          // if (!this.handHeld) {
-          //   this._request.onloadend = this.handleLoadEnd.bind(this);
-          // }
         }
         else{
           this._request.upload.onprogress = this._handleOnProgressUpload.bind(this);
@@ -217,7 +214,9 @@
       result.id = this.id;
       if(isFinite(result.bandwidth)) {
           if (this.method === 'GET') {
-              this.sendRequest();
+              if (!this.enableEvents) {
+                this.sendRequest();
+              }
               this.callbackComplete(result);
           }
       }
@@ -303,18 +302,8 @@
    xmlHttpRequest.prototype.sendRequest = function() {
     // this._request.open("GET", this.url + this.download_size +  '&r=' + Math.random());
     this._request.open("GET", this.url);
-    // this.request.setRequestHeader('Range', bytes);  // TODO add bytes configurable
     this._request.send(null);
   }
-
-  // xmlHttpRequest.prototype.handleLoadEnd = function() {
-  //   this._request.timeout = this.timeout - (timer() - this.startTime);
-  //   console.log("time " +this._request.timeout);
-  //   if (this._request.timeout < 500) {
-  //     return;
-  //   }
-  //   this.sendRequest();
-  // }
 
 window.xmlHttpRequest = xmlHttpRequest;
 
